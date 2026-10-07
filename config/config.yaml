@@ -107,7 +107,7 @@ sweep:
   budget_fraction: 0.3
   womens_mean_effect: {purchase: 0.0096, visit: 0.032}   # = v1.0 positive control averaged over customers
   learner: S                   # train-selected learner for spend in the v1.0 positive control
-  allocation: lagrangian       # within 0.34% of the exact IP in v1.0 and ~200x faster
+  allocation: lagrangian_repair   # Lagrangian + greedy repair of leftover budget; changed after first run (DECISIONS C4)
   lgbm_params:                 # v1.0 CV choice for spend, fixed (not re-tuned per replication)
     num_leaves: 7
     min_child_samples: 400

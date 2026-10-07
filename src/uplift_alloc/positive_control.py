@@ -36,15 +36,19 @@ def baseline_rates(history: np.ndarray, base: dict[str, float]) -> tuple[np.ndar
 
 
 def effect_increments(df: pd.DataFrame, pc: dict[str, Any]) -> tuple[np.ndarray, np.ndarray]:
-    """(n, 3) additive increments to visit-draw and purchase probabilities per arm (column 0 = control)."""
+    """(n, 3) additive increments to visit-draw and purchase probabilities per arm (column 0 = control).
+
+    An arm with ``where: segment`` gets ``visit``/``purchase`` inside the segment and the optional
+    ``visit_outside``/``purchase_outside`` (default 0) elsewhere.
+    """
     n = len(df)
     seg = segment_mask(df, pc["segment"])
     dv, dc = np.zeros((n, 3)), np.zeros((n, 3))
     for a, key in ARM_KEYS.items():
         eff = pc["effects"][key]
-        where = np.ones(n, bool) if eff["where"] == "all" else seg
-        dv[:, a] = eff["visit"] * where
-        dc[:, a] = eff["purchase"] * where
+        inside = np.ones(n, bool) if eff["where"] == "all" else seg
+        dv[:, a] = np.where(inside, eff["visit"], eff.get("visit_outside", 0.0))
+        dc[:, a] = np.where(inside, eff["purchase"], eff.get("purchase_outside", 0.0))
     return dv, dc
 
 

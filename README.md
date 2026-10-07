@@ -1,6 +1,7 @@
 # Budget-constrained promotion targeting from an RCT
 
-**v1.0: a pre-registered pipeline, extended in later releases.** This README reports v1.0. The
+**v1.0: a pre-registered pipeline, extended in later releases.** This README reports v1.0 and
+v1.1 ([when does targeting pay off?](#v11--when-does-targeting-pay-off)). The
 planned extensions (when targeting pays off, profit objective, direct policy learning, sequential
 allocation) are listed in [ROADMAP.md](ROADMAP.md). Each release freezes its config in a commit
 before anything runs on it.
@@ -208,6 +209,59 @@ CIs exclude the RCT value. IPW with an estimated multinomial-logit propensity an
 it to within 0.2 pp: Mens DR 7.8% [6.9, 8.7], Womens DR 4.7% [3.9, 5.6]. On **spend** the selection
 bias is buried in noise, as anticipated (DECISIONS D18).
 
+## v1.1 — when does targeting pay off?
+
+**Question.** The v1.0 positive control is a single point: one effect pattern at one sample size.
+How much effect heterogeneity, and how many customers, does model-based targeting need before it
+(a) actually earns more than simpler policies and (b) can be *shown* to earn more from one experiment?
+
+**Design** (frozen in config before any sweep code ran; DECISIONS V1–V5, C4). The v1.0 generator is
+reused with the Womens e-mail's *average* effect held fixed (+$0.96 spend per customer) while
+heterogeneity h moves it into the 32% segment: at h = 0 the effect is uniform, and at h = 1 it is
+all in the segment, which is exactly the v1.0 positive control. Each of 400 simulated experiments
+(5 h × 4 sample sizes × 20 replications) works as follows:
+- resample n customers' real covariates and randomise arms;
+- fit the S-learner on 70%;
+- allocate the other 30% at a 30% budget (Lagrangian with greedy repair);
+- record the **true** gain, which is known from the generator, and the **doubly robust estimate**
+  of that gain with its 95% CI, which is what an analyst would see.
+
+![Sweep heatmap](results/figures/sweep_heatmap.png)
+
+Each cell shows the mean true gain per customer, with a 95% t-interval across 20 replications in
+`sweep_summary.csv`; bold outlined cells have intervals excluding 0. "Detected" is the share of
+single experiments whose DR 95% CI is above 0.
+
+- **Gains appear early.** Against the best single arm, which isolates the value of heterogeneity,
+  targeting truly pays off from h = 0.25 at n ≥ 16k: +$0.04 [0.02, 0.05] at 16k, +$0.06 [0.05, 0.08]
+  at 64k. From h = 0.5 it pays off at every n. At h = 0 it earns nothing, as it should:
+  −$0.007 [−0.013, 0.000] at 64k. Against random targeting it always wins, but at h = 0 that is
+  only the gain from picking the better arm.
+- **Detection lags far behind.** At Hillstrom's size (64k), one experiment detects the gain over the
+  best single arm in 5% of replications at h = 0.25, 25% at h = 0.5, 85% at h = 0.75 and 95% at h = 1.
+  At 16k it is ≤ 20% everywhere. Between "targeting would earn more" and "you can show it does"
+  there is a wide band where the policy is worth $0.04–0.23 per customer yet looks like noise.
+- **Learners are near the oracle once data suffice.** At 256k the targeted policy is within $0.01 of
+  the oracle that knows τ for h ≥ 0.75. At 4k it captures less than half the oracle's gain.
+
+**What this means for the Hillstrom null.** The real spend result (no learner beats random, and the
+uplift policy doesn't beat "Mens to a random subset") is weak evidence *against* heterogeneity. In
+this sweep, an experiment of Hillstrom's size misses a real, profitable concentration of the effect
+(h ≤ 0.5, worth up to $0.19 per customer over the best single arm) most of the time. Detection only
+becomes reliable when most of the effect sits in a third of customers.
+
+Hillstrom's real effects are also smaller than the sweep's: the Womens spend ATE is $0.42, against
+the $0.96 simulated here, which would push every detection rate down further. So the honest reading
+of v1.0 is "no heterogeneity large enough to detect with 64k customers", not "no heterogeneity".
+Showing a modest targeting gain on spend would take a several-fold larger experiment, or a
+higher-signal outcome such as visit, where v1.0 did find a signal.
+
+Limitations specific to v1.1:
+- One learner with fixed LightGBM parameters, which are conservative at small n.
+- One budget (30%), and spend only.
+- Heterogeneity follows a single segment rule on observed covariates.
+- The CIs are across replications of a simulation, not from the real data.
+
 ## Limitations
 
 - **SUTVA.** E-mails are assumed not to affect other customers (no household spill-over, no
@@ -240,6 +294,8 @@ python -m venv .venv && . .venv/bin/activate   # Windows: .venv\Scripts\activate
 make install     # pip install -e ".[dev,llm]"   (the llm extra pulls in torch, for one extension)
 make quick       # whole pipeline, 50 bootstrap reps, into results/quick/   (~15 min on 16 cores)
 make all         # full run, 500 reps, regenerates results/                  (~45 min on 16 cores)
+make sweep       # v1.1 heterogeneity x sample-size sweep only (~2 min; also part of make all)
+make sweep-quick # 2x2 grid, 3 replications, into results/quick/ (seconds)
 make test        # pytest: every estimator tested on simulated data with a known effect
 ```
 
@@ -253,11 +309,11 @@ reuse cached predictions and embeddings.
 ```
 config/config.yaml         all analysis choices (fixed before test results; later changes in DECISIONS.md)
 src/uplift_alloc/          library: data, rct, cate, metrics, allocate, ope, positive_control,
-                           confounding, robust_allocate, llm_features, run_all, plotting, config
+                           confounding, robust_allocate, llm_features, sweep, run_all, plotting, config
 scripts/download_data.py   fetch + validate + hash + split + DATA_CARD.md
 tests/                     pytest suite (simulated ground truth for every estimator)
-results/{figures,tables}/  generated outputs (pc_* = positive control)
-DATA_CARD.md  DECISIONS.md  TODO.md
+results/{figures,tables}/  generated outputs (pc_* = positive control, sweep_* = v1.1)
+DATA_CARD.md  DECISIONS.md  ROADMAP.md  TODO.md  PROJECT.md
 ```
 
 ## CV bullet

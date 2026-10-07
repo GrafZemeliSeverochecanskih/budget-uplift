@@ -1,7 +1,7 @@
 # On Windows without GNU make, use `mingw32-make` or run the commands directly.
 PYTHON ?= python
 
-.PHONY: install data test all quick clean
+.PHONY: install data test all quick sweep sweep-quick clean
 
 install:
 	$(PYTHON) -m pip install -e ".[dev,llm]"
@@ -18,6 +18,13 @@ all: data
 # Same pipeline with 50 bootstrap reps and a lighter solver benchmark; writes results/quick/.
 quick: data
 	$(PYTHON) -m uplift_alloc.run_all --quick
+
+# v1.1 heterogeneity x sample-size sweep (also part of `make all`); sweep-quick = 2x2 grid, 3 replications.
+sweep: data
+	$(PYTHON) -m uplift_alloc.run_all --only sweep
+
+sweep-quick: data
+	$(PYTHON) -m uplift_alloc.run_all --quick --only sweep
 
 clean:
 	rm -rf results/figures/*.png results/tables/*.csv results/quick

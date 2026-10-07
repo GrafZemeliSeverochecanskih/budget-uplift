@@ -16,16 +16,16 @@ Hillstrom, with a semi-synthetic positive control.
 - [x] IPW and doubly robust policy evaluation
 - [x] Positive control, confounding, robust allocation and LLM-feature extensions
 
-## v1.1 — when does targeting pay off?
+## v1.1 — when does targeting pay off? (done)
 
 Goal: sweep effect heterogeneity × sample size on the semi-synthetic generator, and map where
 model-based targeting beats random targeting, with intervals.
 
-- [ ] Sweep grid (heterogeneity levels, sample sizes, replications) frozen in config before running
-- [ ] `sweep.py` reusing the existing learners, allocation and OPE code; tests on a tiny grid
-- [ ] Heatmap of policy value minus random-targeting value, cells marked where the 95% interval excludes 0, plus CSV
-- [ ] `make sweep` and `make sweep-quick`
-- [ ] README section: the question, the heatmap, and what it means for the Hillstrom null result
+- [x] Sweep grid (heterogeneity levels, sample sizes, replications) frozen in config before running
+- [x] `sweep.py` reusing the existing learners, allocation and OPE code; tests on a tiny grid
+- [x] Heatmap of policy value minus random-targeting value, cells marked where the 95% interval excludes 0, plus CSV
+- [x] `make sweep` and `make sweep-quick`
+- [x] README section: the question, the heatmap, and what it means for the Hillstrom null result
 
 ## v1.2 — profit objective
 

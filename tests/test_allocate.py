@@ -45,3 +45,25 @@ def test_zero_budget_emails_nobody():
     tau = np.ones((5, 2))
     assert (allocate.ip_allocate(tau, COST, 0.0).assign == 0).all()
     assert (allocate.lagrangian_allocate(tau, COST, 0.0).assign == 0).all()
+
+
+def test_repair_fixes_identical_tau_groups_and_matches_ip():
+    """With identical tau no lam selects part of the group: plain Lagrangian e-mails nobody."""
+    tau = np.tile([0.2, 0.9], (100, 1))
+    cost = np.array([0.10, 0.08])
+    budget = 3.0  # affords 37 Womens e-mails, not 100
+    plain = allocate.lagrangian_allocate(tau, cost, budget)
+    fixed = allocate.lagrangian_allocate(tau, cost, budget, repair=True)
+    ip = allocate.ip_allocate(tau, cost, budget, time_limit=10, workers=1)
+    assert plain.objective == 0
+    assert fixed.spend <= budget + 1e-9
+    assert fixed.objective == pytest.approx(ip.objective)
+
+
+def test_repair_never_lowers_objective():
+    rng = np.random.default_rng(1)
+    tau = rng.normal(0.1, 0.5, size=(3000, 2))
+    for budget in (10.0, 100.0, 250.0):
+        plain = allocate.lagrangian_allocate(tau, COST, budget)
+        fixed = allocate.lagrangian_allocate(tau, COST, budget, repair=True)
+        assert plain.objective <= fixed.objective + 1e-12 and fixed.spend <= budget + 1e-9

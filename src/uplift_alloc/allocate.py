@@ -147,12 +147,36 @@ def dual_value(tau: np.ndarray, cost: np.ndarray, budget: float, lam: float) -> 
     return float(np.maximum(0, (tau - lam * cost).max(axis=1)).sum() + lam * budget)
 
 
-def lagrangian_allocate(tau: np.ndarray, cost: np.ndarray, budget: float, max_iter: int = 100) -> Allocation:
+def greedy_repair(assign: np.ndarray, tau: np.ndarray, cost: np.ndarray, budget: float) -> np.ndarray:
+    """Spend leftover budget on unassigned customers, best tau/cost first (tau > 0 only).
+
+    Fixes the Lagrangian's all-or-nothing behaviour on groups of customers with identical tau,
+    where no single lam can select part of the group. Never removes or changes an assignment, so
+    the result stays feasible and its objective can only increase.
+    """
+    assign = assign.copy()
+    left = budget - evaluate_assignment(assign, tau, cost)[1]
+    free = np.flatnonzero(assign == 0)
+    cand_i, cand_a = np.nonzero(tau[free] > 0)
+    order = np.argsort(-(tau[free][cand_i, cand_a] / cost[cand_a]), kind="stable")
+    for k in order:
+        if left < cost.min():
+            break
+        i, a = free[cand_i[k]], cand_a[k]
+        if assign[i] == 0 and cost[a] <= left + 1e-12:
+            assign[i] = a + 1
+            left -= cost[a]
+    return assign
+
+
+def lagrangian_allocate(tau: np.ndarray, cost: np.ndarray, budget: float, max_iter: int = 100,
+                        repair: bool = False) -> Allocation:
     """Binary-search the smallest lam >= 0 whose greedy choice spends <= B.
 
     Spend is non-increasing in lam, so bisection works; at lam_hi = max(tau/c) + 1 nobody is
     e-mailed. The returned solution is always feasible; leftover budget is the price of not
-    splitting ties/fractional customers (the gap to the IP).
+    splitting ties/fractional customers (the gap to the IP). ``repair=True`` spends that leftover
+    with ``greedy_repair`` (used from v1.1 on; v1.0 results use the plain heuristic).
     """
     start = time.perf_counter()
 
@@ -172,6 +196,8 @@ def lagrangian_allocate(tau: np.ndarray, cost: np.ndarray, budget: float, max_it
             if hi - lo < 1e-12:
                 break
     assign = lagrangian_choice(tau, cost, hi)
+    if repair:
+        assign = greedy_repair(assign, tau, cost, budget)
     obj, spend = evaluate_assignment(assign, tau, cost)
     return Allocation(assign, obj, spend, time.perf_counter() - start, "feasible",
                       bound=dual_value(tau, cost, budget, hi), lam=hi)

@@ -26,10 +26,18 @@ def ipw_value(pi: np.ndarray, t: np.ndarray, y: np.ndarray, propensity: float = 
     return float(np.mean(pi[np.arange(len(t)), t] * y / propensity))
 
 
-def dr_value(pi: np.ndarray, t: np.ndarray, y: np.ndarray, mu: np.ndarray, propensity: float = 1 / 3) -> float:
-    """Doubly robust: mean_i [sum_a pi[i,a] mu[i,a] + pi[i,T_i] (Y_i - mu[i,T_i]) / e(T_i)]."""
+def dr_scores(pi: np.ndarray, t: np.ndarray, y: np.ndarray, mu: np.ndarray, propensity: float = 1 / 3) -> np.ndarray:
+    """Per-customer doubly robust scores sum_a pi[i,a] mu[i,a] + pi[i,T_i] (Y_i - mu[i,T_i]) / e(T_i).
+
+    Their mean is the DR policy value and their standard deviation / sqrt(n) its influence-function SE.
+    """
     rows = np.arange(len(t))
-    return float(np.mean((pi * mu).sum(axis=1) + pi[rows, t] * (y - mu[rows, t]) / propensity))
+    return (pi * mu).sum(axis=1) + pi[rows, t] * (y - mu[rows, t]) / propensity
+
+
+def dr_value(pi: np.ndarray, t: np.ndarray, y: np.ndarray, mu: np.ndarray, propensity: float = 1 / 3) -> float:
+    """Doubly robust policy value: mean of ``dr_scores``."""
+    return float(np.mean(dr_scores(pi, t, y, mu, propensity)))
 
 
 # policies ----------------------------------------------------------------------
