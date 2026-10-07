@@ -1,0 +1,107 @@
+# All analysis choices. Fixed on 2026-10-06 before looking at any test-set result.
+# Later changes must be logged with a reason in DECISIONS.md.
+
+seed: 20261006
+
+split:
+  test_size: 0.30          # 70/30, stratified by arm
+  stratify: arm
+
+# Hillstrom has no cost data: these are ASSUMED costs per email in $ (see DECISIONS.md).
+# The Mens e-mail is assumed more expensive so the arm choice is a real trade-off.
+costs:
+  mens: 0.10               # arm 1
+  womens: 0.08             # arm 2
+
+# Budget B = fraction * n_customers * mean email cost.
+# fraction 1.0 = enough to email everyone at the average email cost.
+budget_fractions: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+
+bootstrap_reps: 500
+alpha: 0.05
+
+rct:
+  smd_flag: 0.1
+  power: 0.80
+
+cate:
+  outcomes: [spend, visit, conversion]   # spend is primary; visit added 2026-10-06 (DECISIONS C2)
+  cv_folds: 3                      # hyperparameter CV on train only
+  selection_fraction: 0.25         # share of train held out to pick the learner used downstream
+  lgbm_grid:
+    num_leaves: [7, 31]
+    min_child_samples: [100, 400]
+    n_estimators: [100, 300]
+  lgbm_fixed:
+    learning_rate: 0.03
+    subsample: 0.8
+    subsample_freq: 1
+    colsample_bytree: 0.8
+    verbose: -1
+  causal_forest:
+    n_estimators: 400
+    min_samples_leaf: 50
+
+allocate:
+  ip_time_limit_s: 120       # SCIP is the reference exact solver; CP-SAT is run too for n <= cpsat_max_n
+  cpsat_max_n: 10000
+  cpsat_time_limit_s: 30
+  ip_workers: 8
+  int_scale: 10000           # CP-SAT needs integers: tau-hat and costs are scaled by this and rounded
+  runtime_sizes: [1000, 10000, 64000]
+  lagrange_max_iter: 100
+
+robust:
+  bootstrap_fits: 50         # refits of the CATE model on bootstrap resamples of train
+  lcb_quantile: 0.10         # allocate on the 10th percentile of tau-hat across refits
+  eval_quantile: 0.05        # report the 5th percentile of policy value across test bootstraps
+
+confounding:
+  # P(keep a treated customer) = sigmoid(intercept + slope * z), z = standardised log(1 + history).
+  # Control customers are all kept.
+  keep_intercept: 0.0
+  keep_slope: 1.5
+
+llm_features:
+  model: sentence-transformers/all-MiniLM-L6-v2
+  pca_components: 8
+  batch_size: 256
+
+ope:
+  outcomes: [spend, visit]   # allocation + OPE objective; visit added 2026-10-06 (DECISIONS C2)
+
+# Semi-synthetic positive control. FROZEN 2026-10-06 in its own commit before any run on it.
+# Real covariates, real arm assignment, real split; simulated outcomes with a KNOWN effect:
+#   v0(x) = visit_rate * exp(history_slope * z), c0(x) = purchase_rate * exp(history_slope * z),
+#   z = standardised log(1 + history) (prognostic only, no effect heterogeneity).
+#   P(visit draw) = v0 + effect.visit, P(purchase) = c0 + effect.purchase (additive, per arm, only where the
+#   arm's `where` holds), spend = purchase * amount, amount ~ LogNormal with the given mean and sigma,
+#   visit = visit draw OR purchase.
+# => tau_spend(x, a) = effect.purchase * amount.mean; tau_visit has a closed form (positive_control.py).
+positive_control:
+  seed_offset: 1                         # simulation seed = seed + seed_offset
+  segment: "womens == 1 and recency <= 6"  # 32% of customers (computed from covariates only)
+  baseline:
+    visit_rate: 0.10
+    purchase_rate: 0.006
+    history_slope: 0.3
+  amount:
+    mean: 100.0
+    sigma: 1.0
+  effects:
+    mens:   {where: all,     visit: 0.03, purchase: 0.002}   # small uniform effect: +$0.20 spend everywhere
+    womens: {where: segment, visit: 0.10, purchase: 0.030}   # +$3.00 spend, only inside the segment
+
+# make quick / run_all --quick: same pipeline, cheaper uncertainty, outputs in results/quick/.
+quick:
+  bootstrap_reps: 50
+  robust:
+    bootstrap_fits: 10
+  allocate:
+    runtime_sizes: [1000, 10000]
+    cpsat_max_n: 1000
+
+criteo:
+  enabled: false
+  propensity: 0.85
+  cost_per_treated: 1.0

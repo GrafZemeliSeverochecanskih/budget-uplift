@@ -1,0 +1,55 @@
+# Decisions log
+
+Every analysis choice that is not dictated by `CLAUDE.md`, and every change made after looking at
+test-set results, with its date and reason. Config values live in `config/config.yaml`.
+
+## 2026-10-06 — fixed before any test-set result
+
+| # | Decision | Reason |
+|---|---|---|
+| D1 | Load via `sklift.datasets.fetch_hillstrom` (scikit-uplift 0.5.1). The direct-CSV fallback was **not** needed. | 0.5.1 installs and runs against numpy 2.5.3 / scikit-learn 1.9.1 / pandas 3.0.6 (Python 3.12), so the whole stack is pinned at current versions. |
+| D2 | The SHA-256 is computed on the file sklift caches, `hillstorm_no_indices.csv.gz` (sic). | That is the raw file actually downloaded; hashing the decompressed CSV would add a step without adding safety. |
+| D3 | `.gitignore` ignores `data/*` but keeps `data/DATA_VERSION.txt` under version control. | Otherwise a fresh clone has no recorded hash and the "fail loudly if the hash changes" check could never fire for anyone but the first downloader. |
+| D4 | Email costs: Mens $0.10, Womens $0.08 (assumed; Hillstrom has no cost data). | Unequal costs make the arm choice a genuine multiple-choice knapsack instead of "pick the best arm". The absolute level only scales the budget axis. |
+| D5 | Budget `B = fraction × n × mean email cost`, fraction ∈ {0, 0.1, …, 1.0}. | One interpretable axis: fraction 1.0 can email everyone at the average cost (but not everyone with the dearer Mens e-mail). |
+| D6 | Objective is incremental **spend** (revenue), not profit; costs only enter the budget constraint. | As specified in TODO §3. Profit would need a margin assumption on top of the cost assumption; listed as a limitation. |
+| D7 | RCT analysis (§1) uses all 64,000 rows. | Nothing is tuned there; randomisation, not the split, protects those estimates. Everything that is fit or selected (§2–5) uses train only. |
+| D8 | Regression adjustment = Lin (2013) fully interacted OLS with centred covariates and HC2 SEs; covariates = all encoded features (one level per one-hot block dropped) + `log1p(history)`. | Consistent under randomisation even if the linear model is wrong; with `history` alone it is CUPED. |
+| D9 | Power: two-sided two-sample z-test, equal arms, pooled SD of spend; the interval on required n maps the ATE CI endpoints. | Simple, standard, and makes the dependence on the noisy effect size explicit. |
+| D10 | One LightGBM parameter set per outcome, chosen by 3-fold CV MSE of the outcome model μ(x, a) on train, shared by all base models of all learners. | Outcome-MSE tuning is the standard nuisance-tuning choice; it keeps the learner comparison about the meta-algorithm, not per-learner tuning luck. It does not directly optimise CATE. |
+| D11 | Propensity fixed at 1/3 in every learner (X-learner within-pair weight 1/2; EconML DR-learner and CausalForestDML get a `KnownPropensity` classifier). | CLAUDE.md: use the design propensity, do not estimate it. |
+| D12 | The learner used downstream (§3–5) is chosen on a 25% arm-stratified hold-out of **train** by the sum of per-arm Qini on spend; then all learners are refit on full train for the test evaluation. | Never select on test. |
+| D13 | Qini coefficient = area between the Qini curve and the random diagonal, per customer of the arm-vs-control subsample; AUUC = area under the uplift curve, plus AUUC lift over random. Bootstrap CIs resample the test rows with predictions held fixed. | The interval covers evaluation noise only, not refit noise; stated in the docstring. |
+
+| D14 | Exact IP solver = **SCIP** through OR-Tools `pywraplp` (LP-based branch and bound, relative MIP gap 1e-6). CP-SAT is still run for n ≤ 10k and reported. CBC was tried and dropped. | Found while writing the unit tests, before any allocation result on Hillstrom: on a 2,000-customer synthetic instance with a non-binding budget, CP-SAT hit its 20 s limit with an objective 1.4% *below* the Lagrangian solution (which is provably optimal there: dual bound = objective). SCIP solved the same instances to optimality in < 1 s, and 64k-customer instances in 30–55 s; CBC returned no solution at 64k within 60 s. The multiple-choice knapsack has an almost integral LP relaxation, which LP-based solvers exploit and CP-SAT does not. |
+| D15 | Pairs with τ̂ ≤ 0 (or unaffordable alone) get no IP variable. | Provably does not change the optimum; halves the model size. |
+| D16 | Random targeting and "best single arm" are evaluated as **stochastic** policies: each customer is e-mailed with probability q chosen so the expected cost equals B (random arm for random targeting; the train-best arm otherwise). | Their values are then exact expectations; no Monte Carlo noise from drawing one random subset. |
+| D17 | "Best single arm" = largest train difference-in-means on spend. Our policy = IP on τ̂ from the train-selected learner (D12). DR uses per-arm LightGBM outcome models fit on train. | Nothing about the policies is chosen with test data. |
+| D18 | Confounding extension: primary outcome **visit**, spend reported as well; propensity = multinomial logistic regression, outcome model = per-arm OLS, Hájek-normalised IPW and AIPW; bootstrap refits both models in each resample; RCT benchmark = full-data difference in means. | In the control arm visit rises from 8.5% to 13.6% across history quintiles, while spend's gradient is noisy (D8 found covariates explain ~0.1% of spend variance). The bias created by selecting on history is therefore detectable for visit but likely buried in noise for spend. |
+| D19 | Robust allocation: 50 refits of the selected learner on arm-stratified bootstrap resamples of train; allocate on the per-customer 10th percentile of τ̂; evaluate with DR on test and report mean and 5th percentile of the test-bootstrap distribution. | As in TODO §5; 50 refits is the compute/precision trade-off for a per-customer quantile. |
+| D20 | LLM features: sentence template in `llm_features.describe`, `all-MiniLM-L6-v2` embeddings, PCA(8) fit on train rows, appended to the selected learner's features with the §2 LightGBM parameters (not re-tuned). Gain reported as a paired bootstrap CI of the Qini difference. | Keeps the comparison one-variable: same learner, same parameters, ± embedding features. |
+| D21 | Optional Criteo scale check **not run**. | Both URLs in scikit-uplift 0.5.1 (`criteo-bucket.s3.eu-central-1.amazonaws.com/criteo10.csv.gz` and `criteo.csv.gz`) and the Criteo AI Lab link `go.criteo.net/criteo-research-uplift-v2.1.csv.gz` returned HTTP 404 on 2026-10-06. Finding another mirror is a scope/provenance decision left to the project owner. `criteo.enabled: false` in config. |
+
+## 2026-10-06 — positive control, fixed before any run on it (frozen in its own commit)
+
+| # | Decision | Reason |
+|---|---|---|
+| P1 | Semi-synthetic positive control: real covariates, real arm assignment, real 70/30 split; simulated `visit` and `spend` with a known effect (config `positive_control`). Womens e-mail raises purchase probability by 3 pp (+$3.00 expected spend) and visit by 10 pp **only** for `womens == 1 and recency <= 6` (32% of customers); Mens e-mail has a small uniform effect (+0.2 pp purchase = +$0.20, +3 pp visit). | Answers the question the real-data null leaves open: was there no signal, or would the pipeline have missed one? The segment rule is simple enough to state in one line and learnable by trees. |
+| P2 | Realistic noise rather than an easy target: baseline purchase 0.6% (as in Hillstrom), purchase amount LogNormal with mean $100, σ = 1 (heavy right tail), baselines vary with history (prognostic, not effect-modifying). Expected in-segment Womens effect ≈ 4 standard errors on the test split. | A positive control that is trivially detectable proves little; one at the edge of detectability with the same sparsity as the real data is informative. |
+| P3 | Everything downstream is the unchanged real-data code path: same LightGBM CV tuning, same train-hold-out learner selection, same IP, same OPE, same budgets, same costs. Added outputs: correlation of τ̂ with true τ (bootstrap CI over test rows), the true incremental value of every policy (mean of the true τ at the assigned arm), and an oracle policy (IP on the true τ). | Only the outcome generator differs, so the comparison isolates the data. |
+| P4 | `make quick` / `run_all --quick`: 50 bootstrap reps everywhere, 10 robust refits, solver benchmark at n ∈ {1k, 10k} with CP-SAT only at 1k; outputs to `results/quick/` and caches to `data/processed/quick/`, never overwriting the full results. | Requested for reviewers. The full benchmark at 64k alone takes ~15 min. |
+
+## 2026-10-06 — changes after seeing test results
+
+| # | Change | Reason | Effect on conclusions |
+|---|---|---|---|
+| C1 | The "Random" baseline in `learner_comparison.csv` changed from **one** random ordering (bootstrapped) to the **permutation null**: mean and 95% band over 500 random orderings, plus a one-sided `p_vs_random` for every learner. The Qini figure gained the matching band. | The first run's single random ordering happened to score −0.089 with a CI excluding 0 for the Womens arm, i.e. the baseline itself was a noisy draw and would have made every learner look "better than random". | None on any learner's estimate or CI; only the baseline row changed. Learner selection (D12) was already made on train. |
+| C2 | `visit` added to the CATE outcomes (`cate.outcomes`) and to a new allocation/OPE outcome list (`ope.outcomes: [spend, visit]`). | Requested by the project owner after the first write-up, so that the real-data null is shown for the outcome with the most signal (visit base rate 15% vs conversion 0.9%), not only for spend. | Adds results; spend results unchanged (same seeds and code path). |
+| C3 | README story is "spend: no signal on real data; positive control: the pipeline finds a known signal" rather than the requested "real data shows no targeting signal". | With visit added (C2), real data *does* show a ranking signal for the Womens arm on visit (all five learners' Qini CI > 0, p = 0.004), and the visit policy beats random at 7/10 budgets, though the best single arm at only 1/10. Stating "no signal" would contradict the tables. | Wording only. |
+
+## 2026-10-06 — verification
+
+- Fresh-clone check: staged tree exported to an empty directory, new Python 3.12 venv,
+  `mingw32-make install && mingw32-make all && mingw32-make test` → exit 0, 88 tests passed,
+  `make all` 34 min on 16 cores. The data hash matched `data/DATA_VERSION.txt`.
+- All 12 result tables are bit-identical to the ones the README quotes (solver wall-clock columns excluded).

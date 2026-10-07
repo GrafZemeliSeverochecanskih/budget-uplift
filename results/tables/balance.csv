@@ -1,0 +1,23 @@
+covariate,arm,smd,flag
+recency,Mens E-Mail,0.006831532454259954,False
+history,Mens E-Mail,0.00761286832154239,False
+mens,Mens E-Mail,-0.0045823256374879625,False
+womens,Mens E-Mail,0.007588929691887142,False
+newbie,Mens E-Mail,-0.0008918953696535328,False
+zip_code_Rural,Mens E-Mail,0.01365900039927897,False
+zip_code_Surburban,Mens E-Mail,-0.01174335672606268,False
+zip_code_Urban,Mens E-Mail,0.0019722315768513645,False
+channel_Multichannel,Mens E-Mail,-0.004181536419632754,False
+channel_Phone,Mens E-Mail,-0.008275992307117473,False
+channel_Web,Mens E-Mail,0.011013588354428299,False
+recency,Womens E-Mail,0.005180013205688683,False
+history,Womens E-Mail,0.006510722458553667,False
+mens,Womens E-Mail,-0.008630731202832915,False
+womens,Womens E-Mail,0.004946313992582152,False
+newbie,Womens E-Mail,0.0025567009140795606,False
+zip_code_Rural,Womens E-Mail,0.00395850560137286,False
+zip_code_Surburban,Womens E-Mail,-0.0010891197386245202,False
+zip_code_Urban,Womens E-Mail,-0.0017628666291550237,False
+channel_Multichannel,Womens E-Mail,-0.00528289712504171,False
+channel_Phone,Womens E-Mail,0.008622833281250204,False
+channel_Web,Womens E-Mail,-0.005147863897421752,False
