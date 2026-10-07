@@ -1,5 +1,10 @@
 # Budget-constrained promotion targeting from an RCT
 
+**v1.0: a pre-registered pipeline, extended in later releases.** This README reports v1.0. The
+planned extensions (when targeting pays off, profit objective, direct policy learning, sequential
+allocation) are listed in [ROADMAP.md](ROADMAP.md). Each release freezes its config in a commit
+before anything runs on it.
+
 **Question.** A retailer can afford to e-mail only some customers, and has two e-mails (Mens, Womens)
 of different cost. Can heterogeneous treatment effects estimated from a randomised experiment pick
 *who* gets *which* e-mail better than simple rules, at every budget?
