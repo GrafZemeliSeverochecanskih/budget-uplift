@@ -6,9 +6,9 @@
 - [x] `config/config.yaml`: seed, 70/30 stratified train/test split by arm, email cost per arm,
       budget grid (e.g. 0–100% of customers in 10 steps), bootstrap reps (≥ 500)
 - [x] Add `data/` to `.gitignore`
-- [x] `src/uplift_alloc/data.py`: implement exactly the 6 steps under "Primary: how to load" in CLAUDE.md
+- [x] `src/uplift_alloc/data.py`: implement exactly the 6 steps under "Primary: how to load" in PROJECT.md
       (fetch → parquet → assertions → SHA-256 in `DATA_VERSION.txt` → encoding → `load_hillstrom()`)
-- [x] If `scikit-uplift` won't install, use the direct-CSV fallback described in CLAUDE.md — not needed: scikit-uplift 0.5.1 installs and downloads with numpy 2.5 / scikit-learn 1.9 (see DECISIONS.md)
+- [x] If `scikit-uplift` won't install, use the direct-CSV fallback described in PROJECT.md — not needed: scikit-uplift 0.5.1 installs and downloads with numpy 2.5 / scikit-learn 1.9 (see DECISIONS.md)
 - [x] `scripts/download_data.py` + `make data` target that runs the loader on a fresh clone
 - [x] Create and save the stratified train/test split to `data/processed/split.json`
 - [x] Tests (`tests/test_data.py`): row count, arm labels and ~1/3 shares, value ranges, encoding round-trip, split has no overlap

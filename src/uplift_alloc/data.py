@@ -1,6 +1,6 @@
 """Load, validate, version and encode the Hillstrom email RCT.
 
-Implements the six steps in CLAUDE.md ("Primary: how to load"):
+Implements the six steps in PROJECT.md ("Primary: how to load"):
 fetch -> parquet -> assertions -> SHA-256 in DATA_VERSION.txt -> encoding -> ``load_hillstrom()``.
 
 Assumption: randomisation is uniform over the three arms, so the true propensity is 1/3.

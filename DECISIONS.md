@@ -1,6 +1,6 @@
 # Decisions log
 
-Every analysis choice that is not dictated by `CLAUDE.md`, and every change made after looking at
+Every analysis choice that is not dictated by `PROJECT.md`, and every change made after looking at
 test-set results, with its date and reason. Config values live in `config/config.yaml`.
 
 ## 2026-10-06 — fixed before any test-set result
@@ -17,7 +17,7 @@ test-set results, with its date and reason. Config values live in `config/config
 | D8 | Regression adjustment = Lin (2013) fully interacted OLS with centred covariates and HC2 SEs; covariates = all encoded features (one level per one-hot block dropped) + `log1p(history)`. | Consistent under randomisation even if the linear model is wrong; with `history` alone it is CUPED. |
 | D9 | Power: two-sided two-sample z-test, equal arms, pooled SD of spend; the interval on required n maps the ATE CI endpoints. | Simple, standard, and makes the dependence on the noisy effect size explicit. |
 | D10 | One LightGBM parameter set per outcome, chosen by 3-fold CV MSE of the outcome model μ(x, a) on train, shared by all base models of all learners. | Outcome-MSE tuning is the standard nuisance-tuning choice; it keeps the learner comparison about the meta-algorithm, not per-learner tuning luck. It does not directly optimise CATE. |
-| D11 | Propensity fixed at 1/3 in every learner (X-learner within-pair weight 1/2; EconML DR-learner and CausalForestDML get a `KnownPropensity` classifier). | CLAUDE.md: use the design propensity, do not estimate it. |
+| D11 | Propensity fixed at 1/3 in every learner (X-learner within-pair weight 1/2; EconML DR-learner and CausalForestDML get a `KnownPropensity` classifier). | PROJECT.md: use the design propensity, do not estimate it. |
 | D12 | The learner used downstream (§3–5) is chosen on a 25% arm-stratified hold-out of **train** by the sum of per-arm Qini on spend; then all learners are refit on full train for the test evaluation. | Never select on test. |
 | D13 | Qini coefficient = area between the Qini curve and the random diagonal, per customer of the arm-vs-control subsample; AUUC = area under the uplift curve, plus AUUC lift over random. Bootstrap CIs resample the test rows with predictions held fixed. | The interval covers evaluation noise only, not refit noise; stated in the docstring. |
 
