@@ -39,6 +39,16 @@ test-set results, with its date and reason. Config values live in `config/config
 | P3 | Everything downstream is the unchanged real-data code path: same LightGBM CV tuning, same train-hold-out learner selection, same IP, same OPE, same budgets, same costs. Added outputs: correlation of τ̂ with true τ (bootstrap CI over test rows), the true incremental value of every policy (mean of the true τ at the assigned arm), and an oracle policy (IP on the true τ). | Only the outcome generator differs, so the comparison isolates the data. |
 | P4 | `make quick` / `run_all --quick`: 50 bootstrap reps everywhere, 10 robust refits, solver benchmark at n ∈ {1k, 10k} with CP-SAT only at 1k; outputs to `results/quick/` and caches to `data/processed/quick/`, never overwriting the full results. | Requested for reviewers. The full benchmark at 64k alone takes ~15 min. |
 
+## v1.1 — sweep design, fixed before any sweep code ran (frozen in its own commit, 2026-10-07)
+
+| # | Decision | Reason |
+|---|---|---|
+| V1 | Heterogeneity is varied at a **fixed average** Womens effect: inside the segment mean·(1 + h(1−s)/s), outside mean·(1−h), s = segment share in the full Hillstrom covariates (0.320). h ∈ {0, .25, .5, .75, 1}; h = 1 reproduces the v1.0 positive control. Mens keeps its uniform v1.0 effect. | Separates "how much is there to target" from "how big is the effect on average"; otherwise larger h would also mean larger ATE. |
+| V2 | n ∈ {4k, 16k, 64k, 256k} customers per replication (covariates resampled with replacement from Hillstrom; arms re-randomised with propensity 1/3; 70/30 split), 20 replications per cell. | 64k is Hillstrom's size; the grid spans 16× below to 4× above it. Resampling keeps the real covariate distribution at every n. |
+| V3 | One learner (S, the v1.0 positive-control spend choice) with the v1.0 CV LightGBM parameters, not re-tuned; allocation by the Lagrangian heuristic at budget fraction 0.3; outcome = spend. | Hundreds of fits are needed; v1.0 showed the Lagrangian within 0.34% of the exact IP. Fixed parameters are a limitation at small n (min_child_samples = 400) and are stated as such. |
+| V4 | Per cell, two quantities. (a) **True** gain = known incremental value of the targeted policy minus that of random targeting (and of the train-best single arm), averaged over replications, with a t-interval across replications; the heatmap marks cells whose interval excludes 0. (b) **Detection rate** = share of replications in which the practitioner's DR estimate of the paired difference has a 95% CI above 0 (influence-function SE on the test split). | (a) answers "does targeting pay off"; (b) answers "would an analyst with one experiment of size n be able to tell". The analytic SE replaces the bootstrap for speed; it is the same DR estimator as `ope.py`. |
+| V5 | Gains are also reported against the **best single arm**, not only random targeting. | Random targeting splits the budget over both arms, so "beats random" includes the gain from merely choosing the better arm, even at h = 0. The single-arm comparison isolates the value of heterogeneity. |
+
 ## 2026-10-06 — changes after seeing test results
 
 | # | Change | Reason | Effect on conclusions |

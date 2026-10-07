@@ -92,6 +92,32 @@ positive_control:
     mens:   {where: all,     visit: 0.03, purchase: 0.002}   # small uniform effect: +$0.20 spend everywhere
     womens: {where: segment, visit: 0.10, purchase: 0.030}   # +$3.00 spend, only inside the segment
 
+# v1.1 sweep: when does targeting pay off? FROZEN in its own commit before any sweep code ran.
+# Generator = v1.0 positive control, but the Womens e-mail's AVERAGE effect is held fixed while its
+# concentration in the segment (share s = 32%) varies with heterogeneity h in [0, 1]:
+#   effect inside segment  = mean * (1 + h * (1 - s) / s),   effect outside = mean * (1 - h)
+# h = 0: uniform effect (nothing to target beyond arm choice); h = 1: v1.0 positive control exactly.
+# Each replication: resample n customers' covariates (with replacement) from Hillstrom, randomise arms
+# with propensity 1/3, simulate outcomes, 70/30 split, fit the learner on train, allocate on test.
+sweep:
+  outcome: spend
+  heterogeneity: [0.0, 0.25, 0.5, 0.75, 1.0]
+  sample_sizes: [4000, 16000, 64000, 256000]   # 64,000 = Hillstrom
+  replications: 20
+  budget_fraction: 0.3
+  womens_mean_effect: {purchase: 0.0096, visit: 0.032}   # = v1.0 positive control averaged over customers
+  learner: S                   # train-selected learner for spend in the v1.0 positive control
+  allocation: lagrangian       # within 0.34% of the exact IP in v1.0 and ~200x faster
+  lgbm_params:                 # v1.0 CV choice for spend, fixed (not re-tuned per replication)
+    num_leaves: 7
+    min_child_samples: 400
+    n_estimators: 100
+    learning_rate: 0.03
+    subsample: 0.8
+    subsample_freq: 1
+    colsample_bytree: 0.8
+    verbose: -1
+
 # make quick / run_all --quick: same pipeline, cheaper uncertainty, outputs in results/quick/.
 quick:
   bootstrap_reps: 50
@@ -100,6 +126,10 @@ quick:
   allocate:
     runtime_sizes: [1000, 10000]
     cpsat_max_n: 1000
+  sweep:                       # make sweep-quick
+    heterogeneity: [0.0, 1.0]
+    sample_sizes: [4000, 16000]
+    replications: 3
 
 criteo:
   enabled: false
