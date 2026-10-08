@@ -148,6 +148,43 @@ profit:
     colsample_bytree: 0.8
     verbose: -1
 
+# v1.3a direct policy learning. FROZEN in its own commit before any v1.3 code ran.
+# Rewards: profit at margin m per customer and arm, R[i, a] = m * Gamma[i, a] - cost[a], where Gamma are DR
+# pseudo-outcomes of spend (known propensity 1/3; outcome model nested-cross-fitted inside the training folds).
+# A depth-limited policy tree (econml PolicyTree) maximises sum_i R[i, pi(x_i)] - lam * cost[pi(x_i)];
+# lam is the smallest grid value whose training-fold spend fits the budget. Compared with estimate-then-optimise
+# (v1.2 profit-targeted: learner tau-hat -> Lagrangian with repair) on the SAME cross-fitting folds.
+policy_learning:
+  margin: 0.30
+  budget_fractions: [0.2, 0.4, 0.6, 1.2]    # 1.2 = unconstrained
+  crossfit: {folds: 5, repeats: 5}
+  inner_folds: 2
+  tree_depths: [2, 3]
+  min_samples_leaf: 200
+  lambda_grid: {zero: true, min: 0.01, max: 20.0, size: 24}   # {0} + 24 log-spaced values
+  datasets:
+    hillstrom: {learner: X}
+    positive_control: {learner: S}
+
+# v1.3b chance-constrained budget for random customer uptake. FROZEN with v1.3a.
+# Every e-mail carries a voucher worth `voucher_value`, paid out on every purchase by a targeted customer
+# (uptake). Campaign cost = sum of e-mail costs + voucher * purchases: random. Expected profit of e-mailing i with
+# arm a = m * tau[i, a] - cost[a] - voucher * p[i, a], p = purchase probability under arm a (estimated).
+# Mean-budget policy: E[cost] <= B. Chance-constrained policy: P(cost > B) <= epsilon via the normal
+# approximation E[cost] + z_(1-eps) * sd[cost] <= B (bisection on the effective budget).
+# Violation probability is evaluated with the TRUE purchase probabilities on the positive control (Monte Carlo);
+# on real Hillstrom only a model-based (plug-in) violation can be reported.
+chance:
+  voucher_value: 5.0
+  margin: 0.30
+  epsilon: 0.05
+  budget_per_customer: [0.02, 0.04, 0.06, 0.08]   # B = value * customers in the campaign
+  crossfit: {folds: 5, repeats: 3}
+  uptake_draws: 2000
+  datasets:
+    positive_control: {learner: S}
+    hillstrom: {learner: X}
+
 # make quick / run_all --quick: same pipeline, cheaper uncertainty, outputs in results/quick/.
 quick:
   bootstrap_reps: 50
@@ -163,6 +200,12 @@ quick:
   profit:                      # make profit-quick
     crossfit: {folds: 3, repeats: 2}
     optimum_bootstrap_reps: 50
+  policy_learning:             # make policy-quick
+    crossfit: {folds: 3, repeats: 1}
+    lambda_grid: {zero: true, min: 0.01, max: 20.0, size: 8}
+  chance:
+    crossfit: {folds: 3, repeats: 1}
+    uptake_draws: 200
 
 criteo:
   enabled: false

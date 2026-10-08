@@ -59,6 +59,16 @@ test-set results, with its date and reason. Config values live in `config/config
 | R4 | **Cross-fitted** evaluation on all 64,000 customers: 5 folds × 10 repeats; per fold the fixed v1.0 learner (X real, S positive control) and its outcome model are fit on the other folds; DR scores on the held-out fold; repeats combined DML-style. Learners and LightGBM parameters are fixed from v1.0 (not reselected). | Uses 3.3× more evaluation data than the v1.0 test split and includes model-refit variance in the interval, which v1.0 intervals ignored (README limitation). Fixing the learner a priori keeps cross-fitting honest (no selection on evaluation folds). |
 | R5 | A direct comparison of interval widths: v1.0 test-split DR CI vs v1.2 cross-fitted CI for the same revenue objective. | Shows what cross-fitting buys and costs, rather than asserting it. |
 
+## v1.3 — direct policy learning and chance constraints, fixed before any v1.3 code ran (frozen in its own commit, 2026-10-08)
+
+| # | Decision | Reason |
+|---|---|---|
+| L1 | Direct policy learning = EconML `PolicyTree` (depth 2 and 3, min 200 customers per leaf) fit to profit rewards m·Γ − cost, with Γ the DR pseudo-outcomes of spend; Γ's outcome model is nested-cross-fitted (2 inner folds) within each training fold. | Policy learning maximises the DR estimate of policy value directly (Athey & Wager), instead of first estimating τ. Shallow trees are interpretable and robust when τ is noisy, which is exactly the Hillstrom situation. Nesting keeps Γ honest on the data the tree is fit to. |
+| L2 | Budget for trees: penalty λ·cost on rewards; λ = smallest value in {0} ∪ 24 log-spaced values in [0.01, 20] whose training-fold spend ≤ B. Budgets {0.2, 0.4, 0.6, unconstrained}. | Same Lagrangian logic as the allocator; a grid keeps the number of tree fits bounded. A tree's realised spend on new customers can exceed B — reported, not hidden. |
+| L3 | Comparison with estimate-then-optimise (the v1.2 profit-targeted policy, learner X real / S positive control) on the **same** folds, 5 × 5 repeated cross-fitting, DML-combined CIs, paired differences; profit at m = 0.30. | Paired, like-for-like; reuses the v1.2 evaluation that includes refit variance. |
+| U1 | Chance constraint: voucher $5 paid on each purchase by a targeted customer; cost is random; policy must satisfy P(cost > B) ≤ 0.05 via the normal approximation on estimated purchase probabilities; compared with the mean-budget policy (E[cost] ≤ B). Budgets $0.02–0.08 per customer. | Turns "random uptake" into a concrete, checkable problem. The normal approximation is accurate for thousands of independent redemptions. |
+| U2 | The violation probability is evaluated with the **true** purchase probabilities on the positive control (2,000 Monte Carlo draws per campaign); real Hillstrom gets only a plug-in (model-based) violation. Purchase probabilities are estimated with per-arm LightGBM on conversion (fixed v1.0 parameters), fit on training folds. | Only the positive control knows the true uptake probabilities, so only there can a violation rate be verified rather than assumed. |
+
 ## 2026-10-06 — changes after seeing test results
 
 | # | Change | Reason | Effect on conclusions |
