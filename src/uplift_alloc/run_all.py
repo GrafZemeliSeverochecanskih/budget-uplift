@@ -15,7 +15,7 @@ import os
 import time
 
 STEPS = ["rct", "cate", "allocate", "ope", "positive_control", "confounding", "robust_allocate",
-         "llm_features", "sweep", "profit", "scale_criteo"]
+         "llm_features", "sweep", "profit", "policy_learning", "chance", "scale_criteo"]
 KEEP = {"hillstrom.parquet", "split.json"}
 
 

@@ -36,13 +36,13 @@ Goal: optimise profit instead of revenue and find the profit-optimal budget.
 - [x] Profit-optimal budget with an interval
 - [x] Cross-fitted intervals for policy values (include model-refit variance)
 
-## v1.3 — direct policy learning
+## v1.3 — direct policy learning (done)
 
 Goal: compare doubly robust policy learning against estimate-then-optimise.
 
-- [ ] Doubly robust policy learning under the budget constraint
-- [ ] Head-to-head with estimate-then-optimise on real and semi-synthetic data
-- [ ] Chance-constrained budget for random customer uptake
+- [x] Doubly robust policy learning under the budget constraint
+- [x] Head-to-head with estimate-then-optimise on real and semi-synthetic data
+- [x] Chance-constrained budget for random customer uptake
 
 ## v1.4 — sequential allocation
 

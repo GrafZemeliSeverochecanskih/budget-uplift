@@ -140,11 +140,12 @@ def profit_curves(repeats: list[dict], fractions: list[float], margins: list[flo
 
 
 def paired_differences(repeats: list[dict], fractions: list[float], margin: float, alpha: float,
-                       dataset: str) -> pd.DataFrame:
-    """Profit-targeted minus each baseline, per budget, at the main margin (paired, DML-combined)."""
-    ours = profit_label(margin)
+                       dataset: str, ours: str | None = None, others: list[str] | None = None) -> pd.DataFrame:
+    """``ours`` (default: profit-targeted) minus each of ``others`` (default: BASELINES), per budget,
+    at the given margin (paired on the same customers and folds, DML-combined)."""
+    ours = ours or profit_label(margin)
     rows = []
-    for other in BASELINES:
+    for other in others or BASELINES:
         diffs = [(margin * r[ours]["rev"] - r[ours]["cost"]) - (margin * r[other]["rev"] - r[other]["cost"])
                  for r in repeats]
         est, se = _per_repeat(diffs)

@@ -1,7 +1,7 @@
 # On Windows without GNU make, use `mingw32-make` or run the commands directly.
 PYTHON ?= python
 
-.PHONY: install data test all quick sweep sweep-quick profit profit-quick clean
+.PHONY: install data test all quick sweep sweep-quick profit profit-quick policy policy-quick clean
 
 install:
 	$(PYTHON) -m pip install -e ".[dev,llm]"
@@ -32,6 +32,13 @@ profit: data
 
 profit-quick: data
 	$(PYTHON) -m uplift_alloc.run_all --quick --only profit
+
+# v1.3 direct policy learning + chance-constrained budget (also part of `make all`).
+policy: data
+	$(PYTHON) -m uplift_alloc.run_all --only policy_learning chance
+
+policy-quick: data
+	$(PYTHON) -m uplift_alloc.run_all --quick --only policy_learning chance
 
 clean:
 	rm -rf results/figures/*.png results/tables/*.csv results/quick

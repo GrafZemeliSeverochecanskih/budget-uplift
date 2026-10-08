@@ -1,8 +1,9 @@
 # Budget-constrained promotion targeting from an RCT
 
 **v1.0: a pre-registered pipeline, extended in later releases.** This README reports v1.0,
-v1.1 ([when does targeting pay off?](#v11--when-does-targeting-pay-off)) and v1.2
-([profit objective](#v12--profit-objective)). The
+v1.1 ([when does targeting pay off?](#v11--when-does-targeting-pay-off)), v1.2
+([profit objective](#v12--profit-objective)) and v1.3
+([policy learning and chance constraints](#v13--direct-policy-learning-and-a-chance-constrained-budget)). The
 planned extensions (when targeting pays off, profit objective, direct policy learning, sequential
 allocation) are listed in [ROADMAP.md](ROADMAP.md). Each release freezes its config in a commit
 before anything runs on it.
@@ -321,6 +322,88 @@ Limitations specific to v1.2:
   percentile interval over that grid.
 - Allocation uses the Lagrangian with repair, not the exact IP (within 0.34% in v1.0).
 
+## v1.3 — direct policy learning and a chance-constrained budget
+
+Both parts were frozen in config before any v1.3 code ran (DECISIONS L1–L3, U1–U2, C5).
+
+### a) Policy learning vs estimate-then-optimise
+
+**Question.** v1.0–v1.2 first estimate τ and then optimise. Doubly robust policy learning skips
+the CATE model and directly picks the policy, here a depth-2 or depth-3 tree, that maximises
+estimated profit. It is often recommended when τ is noisy, which is exactly Hillstrom's situation.
+Does it do better?
+
+**Design.**
+- Rewards are margin × DR pseudo-outcome − e-mail cost. Their outcome model is cross-fitted
+  *inside* each training fold, so the tree never sees rewards built from a model fit on the same
+  customer.
+- The budget enters as a cost penalty: λ is the smallest value whose training-fold spend fits.
+- Evaluation uses the same customers and folds as estimate-then-optimise (the v1.2
+  profit-targeted policy), with 5 × 5 repeated cross-fitting and paired, DML-combined CIs.
+
+![Policy learning](results/figures/policy_learning.png)
+
+- **Real Hillstrom: no difference.** Trees and estimate-then-optimise are indistinguishable at
+  every budget (all 8 paired CIs contain 0), and neither beats the best single arm. The depth-2 tree
+  learned on all customers says almost exactly that: *Mens e-mail to everyone except low-history
+  (≤ $35.6), recent (recency ≤ 2) customers, who get Womens*
+  (`policylearn_tree_hillstrom.txt`). Policy learning reaches the same "one e-mail for everyone"
+  conclusion, now as an interpretable rule.
+- **Positive control: estimate-then-optimise wins when the budget is tight.** At budget 0.2 it earns
+  $0.12 [0.07, 0.18] per customer more than the depth-2 tree, and $0.11 [0.05, 0.18] more than
+  depth 3. At budgets 0.4 and above the gap ($0.02–0.05) is not significant.
+- **Why trees lose at a tight budget.** The true segment is a depth-2 rule, but it holds 32% of
+  customers and costs more than a 20% budget. A tree can only e-mail whole leaves, so it must pick
+  a much smaller leaf: it spends $0.006 of the $0.018 budget per customer, against $0.018 for the
+  ranking-based policy. With unconstrained budgets the depth-2 tree reaches 88% of
+  estimate-then-optimise's true profit ($0.211 vs $0.239).
+
+### b) Chance-constrained budget under random uptake
+
+**Question.** Suppose each e-mail carries a $5 voucher, paid out on every purchase by a targeted
+customer. The campaign's cost is then random. Can a policy keep P(cost > budget) ≤ 5%, and what
+does that cost?
+
+**Design.** The *mean-budget* policy only requires the expected cost to fit the budget. The
+*chance-constrained* policy shrinks its effective budget until E[cost] + 1.645·sd[cost] fits, using
+estimated purchase probabilities. Overruns are then checked against the **true** uptake
+probabilities, which only the positive control knows: 2,000 Monte Carlo draws per campaign,
+15 cross-fitted campaigns of about 12,800 customers each.
+
+![Chance constraint](results/figures/chance_constraint.png)
+
+| Budget ($/customer) | P(overrun): mean budget | P(overrun): chance-constrained | True profit: mean → chance |
+|---:|---:|---:|---:|
+| 0.02 | 0.63 [0.53, 0.74] | 0.14 [0.08, 0.21] | $0.039 → $0.032 |
+| 0.04 | 0.76 [0.68, 0.84] | 0.22 [0.14, 0.30] | $0.082 → $0.071 |
+| 0.06 | 0.82 [0.76, 0.88] | 0.29 [0.21, 0.37] | $0.124 → $0.112 |
+| 0.08 | 0.85 [0.80, 0.91] | 0.32 [0.25, 0.40] | $0.163 → $0.150 |
+
+- **The chance constraint helps a lot but does not deliver its promise.** It cuts overruns from
+  63–85% to 14–32%, giving up 8–18% of profit. Yet it misses the 5% target, which it *believes* it
+  meets: its plug-in overrun probability is exactly 0.05.
+- **The cause is the winner's curse, not the normal approximation.** Estimated uptake is
+  calibrated overall (0.012 vs 0.012 true) but underestimated by about 10% among the customers the
+  allocator picks (0.026 vs 0.028–0.029). Cheap-looking customers are partly cheap by estimation
+  error. As a result even the mean-budget policy's *expected* cost is 5–7% over budget, so it
+  overruns in more than half of campaigns. The unit test with true probabilities shows the
+  constraint itself works.
+- **The miss grows with the budget.** The safety margin scales with √budget, while the selection
+  bias scales with the budget.
+- **Practical takeaway.** A chance constraint built on the same model that did the selection is
+  optimistic. The uptake model needs recalibrating on the selected customers (or a held-out
+  sample), or the margin needs a bias term. This is a candidate follow-up, not changed post hoc.
+
+On real Hillstrom only plug-in quantities exist: the mean-budget policy's own estimated overrun
+probability is 0.50 by construction, and 0.05 for the chance-constrained one. Given the positive
+control, those plug-in numbers should not be trusted.
+
+Limitations specific to v1.3:
+- Only shallow trees as the policy class; forests were too slow for the λ grid.
+- The tree budget is enforced on training folds, so realised spend on new customers can differ.
+- The voucher scenario (value, paid on all purchases) is an assumption.
+- The overrun probabilities are verified only in the semi-synthetic setting.
+
 ## Limitations
 
 - **SUTVA.** E-mails are assumed not to affect other customers (no household spill-over, no
@@ -357,6 +440,8 @@ make sweep       # v1.1 heterogeneity x sample-size sweep only (~2 min; also par
 make sweep-quick # 2x2 grid, 3 replications, into results/quick/ (seconds)
 make profit      # v1.2 profit objective, cross-fitted 5 folds x 10 repeats (~3 min; also in make all)
 make profit-quick # 3 folds x 2 repeats, into results/quick/ (<1 min)
+make policy      # v1.3 policy learning + chance constraint (~3 min; also in make all)
+make policy-quick # reduced folds/grid/draws, into results/quick/ (~1.5 min)
 make test        # pytest: every estimator tested on simulated data with a known effect
 ```
 
@@ -370,10 +455,12 @@ reuse cached predictions and embeddings.
 ```
 config/config.yaml         all analysis choices (fixed before test results; later changes in DECISIONS.md)
 src/uplift_alloc/          library: data, rct, cate, metrics, allocate, ope, positive_control,
-                           confounding, robust_allocate, llm_features, sweep, profit, run_all, plotting, config
+                           confounding, robust_allocate, llm_features, sweep, profit, policy_learning,
+                           chance, run_all, plotting, config
 scripts/download_data.py   fetch + validate + hash + split + DATA_CARD.md
 tests/                     pytest suite (simulated ground truth for every estimator)
-results/{figures,tables}/  generated outputs (pc_* = positive control, sweep_* = v1.1, profit_* = v1.2)
+results/{figures,tables}/  generated outputs (pc_* = positive control, sweep_* = v1.1, profit_* = v1.2,
+                           policylearn_* / chance_* = v1.3)
 DATA_CARD.md  DECISIONS.md  ROADMAP.md  TODO.md  PROJECT.md
 ```
 

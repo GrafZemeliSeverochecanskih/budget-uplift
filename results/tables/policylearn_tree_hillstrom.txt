@@ -1,0 +1,10 @@
+if history <= 35.59:
+    if recency <= 2.50:
+        -> Womens E-Mail (833 customers)
+    else:  # recency > 2.50
+        -> Mens E-Mail (3832 customers)
+else:  # history > 35.59
+    if channel_Multichannel <= 0.50:
+        -> Mens E-Mail (23481 customers)
+    else:  # channel_Multichannel > 0.50
+        -> Mens E-Mail (3854 customers)

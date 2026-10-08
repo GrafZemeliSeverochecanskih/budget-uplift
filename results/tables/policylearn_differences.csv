@@ -1,0 +1,17 @@
+dataset,comparison,budget_fraction,difference,ci_low,ci_high
+hillstrom,Estimate-then-optimise (X) − Policy tree (depth 2),0.2,-0.003981908317837976,-0.04631594516261465,0.03835212852693869
+hillstrom,Estimate-then-optimise (X) − Policy tree (depth 2),0.4,0.033045559966516515,-0.035086487545962365,0.1011776074789954
+hillstrom,Estimate-then-optimise (X) − Policy tree (depth 2),0.6,0.05109056536112318,-0.035009695825401324,0.1371908265476477
+hillstrom,Estimate-then-optimise (X) − Policy tree (depth 2),1.2,0.009577174263654377,-0.06081437820067597,0.07996872672798472
+hillstrom,Estimate-then-optimise (X) − Policy tree (depth 3),0.2,-0.009241634228420375,-0.06013422116769643,0.041650952710855685
+hillstrom,Estimate-then-optimise (X) − Policy tree (depth 3),0.4,0.03552395235257682,-0.02707851043668124,0.09812641514183487
+hillstrom,Estimate-then-optimise (X) − Policy tree (depth 3),0.6,0.029090955860511327,-0.04065436787638178,0.09883627959740444
+hillstrom,Estimate-then-optimise (X) − Policy tree (depth 3),1.2,0.006260834683288744,-0.05939859107599461,0.07192026044257209
+positive_control,Estimate-then-optimise (S) − Policy tree (depth 2),0.2,0.12238114165807082,0.06815235031769074,0.1766099329984509
+positive_control,Estimate-then-optimise (S) − Policy tree (depth 2),0.4,0.04365446121406846,-0.03425696483064347,0.1215658872587804
+positive_control,Estimate-then-optimise (S) − Policy tree (depth 2),0.6,0.04737563877286117,-0.023563164900545754,0.1183144424462681
+positive_control,Estimate-then-optimise (S) − Policy tree (depth 2),1.2,0.022930202355923156,-0.0426646900824307,0.088525094794277
+positive_control,Estimate-then-optimise (S) − Policy tree (depth 3),0.2,0.11274393616401188,0.050868764227793274,0.17461910810023049
+positive_control,Estimate-then-optimise (S) − Policy tree (depth 3),0.4,0.047063879207756835,-0.014989398642610556,0.10911715705812422
+positive_control,Estimate-then-optimise (S) − Policy tree (depth 3),0.6,0.04056069406782342,-0.016789113145217284,0.09791050128086412
+positive_control,Estimate-then-optimise (S) − Policy tree (depth 3),1.2,0.037338121491303534,-0.02779398138465313,0.1024702243672602
