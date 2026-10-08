@@ -118,6 +118,36 @@ sweep:
     colsample_bytree: 0.8
     verbose: -1
 
+# v1.2 profit objective. FROZEN in its own commit before any v1.2 code ran.
+# Incremental profit of a policy = margin * incremental spend - e-mail costs actually spent (costs: top-level
+# `costs`). The profit-targeted policy maximises sum(margin * tau-hat - cost) subject to the budget, so it only
+# e-mails customers whose expected margin exceeds the e-mail cost and may leave budget unused.
+# Evaluation is cross-fitted on ALL customers: K folds, the learner is fit on K-1 folds and the policy is
+# allocated + evaluated (DR, propensity 1/3) on the held-out fold; repeated with different fold splits.
+# Intervals combine within- and between-repeat variance (DML-style: sigma^2 = median(sigma_r^2 + (theta_r -
+# median theta)^2)), so they include model-refit variance.
+profit:
+  margin: 0.30                 # ASSUMED gross margin on incremental spend (Hillstrom has no margin data)
+  margin_sensitivity: [0.15, 0.50]   # profit-optimal budget is also reported at these margins
+  budget_fractions: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2]  # 1.2 > cost of e-mailing everyone
+  crossfit:
+    folds: 5
+    repeats: 10
+  optimum_bootstrap_reps: 500  # customer bootstrap of repeat-averaged scores -> interval for the profit-optimal budget
+  allocation: lagrangian_repair
+  datasets:
+    hillstrom: {learner: X}          # v1.0 train-selected learner for real spend
+    positive_control: {learner: S}   # v1.0 train-selected learner for positive-control spend
+  lgbm_params:                 # v1.0 CV choice for spend (same values as `sweep.lgbm_params`), fixed
+    num_leaves: 7
+    min_child_samples: 400
+    n_estimators: 100
+    learning_rate: 0.03
+    subsample: 0.8
+    subsample_freq: 1
+    colsample_bytree: 0.8
+    verbose: -1
+
 # make quick / run_all --quick: same pipeline, cheaper uncertainty, outputs in results/quick/.
 quick:
   bootstrap_reps: 50
@@ -130,6 +160,9 @@ quick:
     heterogeneity: [0.0, 1.0]
     sample_sizes: [4000, 16000]
     replications: 3
+  profit:                      # make profit-quick
+    crossfit: {folds: 3, repeats: 2}
+    optimum_bootstrap_reps: 50
 
 criteo:
   enabled: false

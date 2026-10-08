@@ -49,6 +49,16 @@ test-set results, with its date and reason. Config values live in `config/config
 | V4 | Per cell, two quantities. (a) **True** gain = known incremental value of the targeted policy minus that of random targeting (and of the train-best single arm), averaged over replications, with a t-interval across replications; the heatmap marks cells whose interval excludes 0. (b) **Detection rate** = share of replications in which the practitioner's DR estimate of the paired difference has a 95% CI above 0 (influence-function SE on the test split). | (a) answers "does targeting pay off"; (b) answers "would an analyst with one experiment of size n be able to tell". The analytic SE replaces the bootstrap for speed; it is the same DR estimator as `ope.py`. |
 | V5 | Gains are also reported against the **best single arm**, not only random targeting. | Random targeting splits the budget over both arms, so "beats random" includes the gain from merely choosing the better arm, even at h = 0. The single-arm comparison isolates the value of heterogeneity. |
 
+## v1.2 — profit objective, fixed before any v1.2 code ran (frozen in its own commit, 2026-10-08)
+
+| # | Decision | Reason |
+|---|---|---|
+| R1 | Profit = margin × incremental spend − e-mail cost spent; margin **0.30** (assumed), sensitivity at 0.15 and 0.50; e-mail costs unchanged ($0.10 Mens, $0.08 Womens). | Hillstrom has neither margins nor costs; 30% is a conventional apparel gross-margin-on-revenue order of magnitude. The sensitivity range shows how much the conclusion depends on it. |
+| R2 | Profit-targeted policy: maximise Σ(m·τ̂ − c)·x subject to the budget (Lagrangian + greedy repair on the profit scores). Compared with the v1.0 revenue-targeted policy (same τ̂, maximise Σ τ̂·x), the best single arm, random targeting and no e-mail; positive control also gets an oracle. | The profit objective changes *who* is worth e-mailing (only m·τ > c), not just how many. Same allocator as v1.1. |
+| R3 | Budget grid extended with 1.2 (more than the cost of e-mailing everyone, i.e. unconstrained). Profit-optimal budget = argmax of estimated profit over the grid; its interval = percentile interval of the argmax over 500 customer-bootstrap resamples of the repeat-averaged per-customer DR scores. | The question is "how much should we spend?", which needs an interval on the argmax, not only on the value. |
+| R4 | **Cross-fitted** evaluation on all 64,000 customers: 5 folds × 10 repeats; per fold the fixed v1.0 learner (X real, S positive control) and its outcome model are fit on the other folds; DR scores on the held-out fold; repeats combined DML-style. Learners and LightGBM parameters are fixed from v1.0 (not reselected). | Uses 3.3× more evaluation data than the v1.0 test split and includes model-refit variance in the interval, which v1.0 intervals ignored (README limitation). Fixing the learner a priori keeps cross-fitting honest (no selection on evaluation folds). |
+| R5 | A direct comparison of interval widths: v1.0 test-split DR CI vs v1.2 cross-fitted CI for the same revenue objective. | Shows what cross-fitting buys and costs, rather than asserting it. |
+
 ## 2026-10-06 — changes after seeing test results
 
 | # | Change | Reason | Effect on conclusions |
