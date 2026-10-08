@@ -185,6 +185,29 @@ chance:
     positive_control: {learner: S}
     hillstrom: {learner: X}
 
+# v1.4 sequential allocation. FROZEN in its own commit before any v1.4 code ran.
+# A campaign of `customers` (covariates resampled from Hillstrom) arrives in batches; outcomes of a batch are seen
+# before the next. One total budget (fraction * customers * mean e-mail cost), paced evenly: each batch may spend
+# remaining budget / remaining batches. Outcomes come from the v1.1 generator at heterogeneity h. Objective: profit
+# at `margin` (v1.2). Every policy is scored by the KNOWN expected profit of its assignments, sum(m*tau - cost).
+#   experiment-then-target(k): uniform 1/3 RCT on the first k batches (cost counted against the budget), then
+#       S-learner fit once on the RCT data, profit-targeted allocation (Lagrangian + repair) for the rest.
+#   bandit: batch 1 = random targeting within the batch budget; afterwards bootstrapped Thompson sampling:
+#       S-learner refit each batch on a bootstrap resample of all logged data, allocate on its tau-hat, with a uniform
+#       random arm for an `epsilon` share of each batch (exploration floor).
+#   oracle: profit-targeted allocation on the true tau (upper reference); random targeting (lower reference).
+sequential:
+  environments:
+    heterogeneous: {heterogeneity: 1.0}   # = v1.0 positive control
+    homogeneous: {heterogeneity: 0.0}     # same average effect, nothing to target beyond arm choice
+  customers: 64000
+  batch_size: 4000
+  budget_fraction: 0.3
+  margin: 0.30
+  replications: 20
+  ett_explore_batches: [1, 2, 4]
+  bandit: {epsilon: 0.05, learner: S}
+
 # make quick / run_all --quick: same pipeline, cheaper uncertainty, outputs in results/quick/.
 quick:
   bootstrap_reps: 50
@@ -206,6 +229,10 @@ quick:
   chance:
     crossfit: {folds: 3, repeats: 1}
     uptake_draws: 200
+  sequential:                  # make sequential-quick
+    customers: 16000
+    replications: 3
+    ett_explore_batches: [1]
 
 criteo:
   enabled: false

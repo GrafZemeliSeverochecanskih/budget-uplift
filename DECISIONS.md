@@ -69,6 +69,15 @@ test-set results, with its date and reason. Config values live in `config/config
 | U1 | Chance constraint: voucher $5 paid on each purchase by a targeted customer; cost is random; policy must satisfy P(cost > B) ≤ 0.05 via the normal approximation on estimated purchase probabilities; compared with the mean-budget policy (E[cost] ≤ B). Budgets $0.02–0.08 per customer. | Turns "random uptake" into a concrete, checkable problem. The normal approximation is accurate for thousands of independent redemptions. |
 | U2 | The violation probability is evaluated with the **true** purchase probabilities on the positive control (2,000 Monte Carlo draws per campaign); real Hillstrom gets only a plug-in (model-based) violation. Purchase probabilities are estimated with per-arm LightGBM on conversion (fixed v1.0 parameters), fit on training folds. | Only the positive control knows the true uptake probabilities, so only there can a violation rate be verified rather than assumed. |
 
+## v1.4 — sequential allocation, fixed before any v1.4 code ran (frozen in its own commit, 2026-10-08)
+
+| # | Decision | Reason |
+|---|---|---|
+| S1 | Environment: 64,000 customers (Hillstrom covariates resampled per replication) in 16 batches of 4,000; outcomes from the v1.1 generator at h = 1 (= v1.0 positive control) and h = 0 (same average effect, homogeneous). One total budget, 0.3 × customers × mean e-mail cost, paced evenly (remaining budget / remaining batches); unspent budget carries forward. | h = 1 is the case where learning *who* to target matters; h = 0 checks that adaptivity does not cost anything when there is nothing to learn. Even pacing is the simplest rule and is shared by every policy, so differences come from targeting, not pacing. |
+| S2 | Experiment-then-target with k ∈ {1, 2, 4} uniform-RCT batches (6–25% of customers; RCT cost counted against the budget), then one S-learner fit and profit-targeted allocation. | The standard one-shot practice (what v1.0–v1.3 assume), at three experiment sizes, since the right size is not known in advance. |
+| S3 | Bandit = bootstrapped Thompson sampling: S-learner refit after every batch on a bootstrap resample of all logged data; ε = 5% of each batch gets a uniform random arm; batch 1 is random targeting within the batch budget. | Bootstrapped TS is a simple, model-agnostic way to get posterior-like exploration from the same learner used elsewhere; the ε floor keeps every arm observed in every region of covariate space. Same learner and LightGBM parameters as the other releases (fixed v1.0 values). |
+| S4 | Score = known expected profit of the assignments, Σ(m·τ_true − cost), per customer, summed over the campaign; also per-batch cumulative curves. 20 replications; t-intervals across replications; paired differences (same customers and outcome draws for every policy within a replication). | Scoring with the true expected profit removes outcome noise from the comparison; pairing removes covariate-resampling noise. |
+
 ## 2026-10-06 — changes after seeing test results
 
 | # | Change | Reason | Effect on conclusions |
