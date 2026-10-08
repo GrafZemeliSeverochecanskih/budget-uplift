@@ -27,14 +27,14 @@ model-based targeting beats random targeting, with intervals.
 - [x] `make sweep` and `make sweep-quick`
 - [x] README section: the question, the heatmap, and what it means for the Hillstrom null result
 
-## v1.2 — profit objective
+## v1.2 — profit objective (done)
 
 Goal: optimise profit instead of revenue and find the profit-optimal budget.
 
-- [ ] Margin assumption and cost per e-mail in config
-- [ ] Profit objective in allocation and evaluation
-- [ ] Profit-optimal budget with an interval
-- [ ] Cross-fitted intervals for policy values (include model-refit variance)
+- [x] Margin assumption and cost per e-mail in config
+- [x] Profit objective in allocation and evaluation
+- [x] Profit-optimal budget with an interval
+- [x] Cross-fitted intervals for policy values (include model-refit variance)
 
 ## v1.3 — direct policy learning
 

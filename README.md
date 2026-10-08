@@ -1,7 +1,8 @@
 # Budget-constrained promotion targeting from an RCT
 
-**v1.0: a pre-registered pipeline, extended in later releases.** This README reports v1.0 and
-v1.1 ([when does targeting pay off?](#v11--when-does-targeting-pay-off)). The
+**v1.0: a pre-registered pipeline, extended in later releases.** This README reports v1.0,
+v1.1 ([when does targeting pay off?](#v11--when-does-targeting-pay-off)) and v1.2
+([profit objective](#v12--profit-objective)). The
 planned extensions (when targeting pays off, profit objective, direct policy learning, sequential
 allocation) are listed in [ROADMAP.md](ROADMAP.md). Each release freezes its config in a commit
 before anything runs on it.
@@ -262,6 +263,64 @@ Limitations specific to v1.1:
 - Heterogeneity follows a single segment rule on observed covariates.
 - The CIs are across replications of a simulation, not from the real data.
 
+## v1.2 — profit objective
+
+**Question.** v1.0 maximised incremental *revenue* at a given budget. A business maximises
+*profit* and also chooses the budget. If every e-mail must earn more margin than it costs, which
+policy should be used, and how much should be spent?
+
+**Design** (frozen in config before any v1.2 code ran; DECISIONS R1–R5).
+- Profit per customer = margin × incremental spend − e-mail cost spent, with an assumed margin of
+  30% (sensitivity at 15% and 50%) and the v1.0 costs.
+- The **profit-targeted** policy maximises Σ(m·τ̂ − cost) within the budget, so it e-mails only
+  customers whose expected margin covers the e-mail and may leave budget unspent. It is compared
+  with the v1.0 revenue-targeted policy, the best single arm and random targeting.
+- New evaluation: **repeated cross-fitting on all 64,000 customers** (5 folds × 10 repeats). Each
+  customer's policy and DR score come from a model that never saw them. Repeats are combined
+  DML-style, so the 95% CIs include model-refit variance, which the v1.0 intervals ignored.
+
+![Profit vs budget](results/figures/profit_vs_budget.png)
+
+**Positive control (known truth).**
+- **Budget recovery:** the profit-optimal budget is 0.4 [0.4, 0.65] of the full budget, and the
+  true optimum is 0.4. At 15% and 50% margins it is 0.4 [0.3, 0.4] and 0.6 [0.4, 0.6], against true
+  optima of 0.3 and 0.4.
+- **Beating baselines:** profit targeting beats the best single arm at budgets 0.2–0.7 and random
+  targeting at every budget (paired cross-fitted CIs above 0).
+- **Profit vs revenue objective:** profit targeting matches revenue targeting while budgets are
+  small, because every top-ranked customer is profitable. Its value shows when the budget is
+  generous. Unconstrained, it stops at $0.047 of spend per customer and earns $0.211 [0.132, 0.290]
+  (true $0.240). The revenue objective spends $0.080 and earns $0.173 [0.079, 0.267] (true $0.217).
+  So the profit objective chooses its own budget, while revenue targeting has to be told one.
+- **Calibration:** the cross-fitted CIs cover the known true profit in 142 of 143
+  (policy × margin × budget) cases, against 73/80 for the v1.0 test-split intervals.
+
+**Real Hillstrom.**
+- **No difference from baselines:** profit targeting is indistinguishable from revenue targeting,
+  the best single arm and random targeting at every budget (0 of 33 paired CIs at non-zero budgets
+  exclude 0).
+- **Best point estimate:** unconstrained, the highest profit is the simplest rule, the Mens
+  e-mail to everyone: $0.130 [0.045, 0.215] per customer, against $0.099 [0.015, 0.183] for profit
+  targeting and $0.088 [0.022, 0.155] for random targeting.
+- **The margin decides whether e-mailing pays at all:** at 15% no policy's profit is
+  distinguishable from 0 (e.g. Mens to everyone: $0.015 [−0.028, 0.058]); at 50% every policy is
+  clearly profitable.
+
+**What cross-fitting bought.** For the same revenue-targeted policy on real spend, cross-fitted
+CIs are 37–58% narrower than the v1.0 test-split CIs (`profit_split_vs_crossfit.csv`), even though
+they now include refit variance. At budget 1.0, the v1.0 estimate of +$0.31 [−0.18, 0.83] becomes
++$0.65 [0.37, 0.93]. The two estimates differ by about half the old interval width, so the v1.0
+point estimate was simply noisy. With 64k evaluation customers instead of 19.2k, the real data now
+shows that e-mailing pays; it still does not show that *targeting* pays.
+
+Limitations specific to v1.2:
+- Margin and costs are assumptions.
+- Cross-fitting uses the learner and LightGBM parameters fixed from v1.0, with no reselection per
+  fold.
+- The profit-optimal budget is searched on a 12-point grid, and its interval is a bootstrap
+  percentile interval over that grid.
+- Allocation uses the Lagrangian with repair, not the exact IP (within 0.34% in v1.0).
+
 ## Limitations
 
 - **SUTVA.** E-mails are assumed not to affect other customers (no household spill-over, no
@@ -279,8 +338,8 @@ Limitations specific to v1.1:
 - **Evaluation noise dominates on spend.** With 19,200 test customers, spend policy-value CIs are
   about ±$0.4 per customer, the same order as the effects. A real deployment would need a larger,
   or prospective, test.
-- **Intervals.** Qini/AUUC and policy-value CIs resample test rows with fixed models, so they ignore
-  model-refit variance. The allocation runtime comparison is a deterministic benchmark on predicted
+- **Intervals.** v1.0 Qini/AUUC and policy-value CIs resample test rows with fixed models, so they
+  ignore model-refit variance (v1.2's cross-fitted intervals include it). The allocation runtime comparison is a deterministic benchmark on predicted
   τ̂ and has no CI. Several comparisons across budgets and outcomes are reported without
   multiplicity correction; read single borderline CIs accordingly.
 - **Criteo scale check not run**: all known download URLs return 404 (DECISIONS D21).
@@ -296,6 +355,8 @@ make quick       # whole pipeline, 50 bootstrap reps, into results/quick/   (~15
 make all         # full run, 500 reps, regenerates results/                  (~45 min on 16 cores)
 make sweep       # v1.1 heterogeneity x sample-size sweep only (~2 min; also part of make all)
 make sweep-quick # 2x2 grid, 3 replications, into results/quick/ (seconds)
+make profit      # v1.2 profit objective, cross-fitted 5 folds x 10 repeats (~3 min; also in make all)
+make profit-quick # 3 folds x 2 repeats, into results/quick/ (<1 min)
 make test        # pytest: every estimator tested on simulated data with a known effect
 ```
 
@@ -309,10 +370,10 @@ reuse cached predictions and embeddings.
 ```
 config/config.yaml         all analysis choices (fixed before test results; later changes in DECISIONS.md)
 src/uplift_alloc/          library: data, rct, cate, metrics, allocate, ope, positive_control,
-                           confounding, robust_allocate, llm_features, sweep, run_all, plotting, config
+                           confounding, robust_allocate, llm_features, sweep, profit, run_all, plotting, config
 scripts/download_data.py   fetch + validate + hash + split + DATA_CARD.md
 tests/                     pytest suite (simulated ground truth for every estimator)
-results/{figures,tables}/  generated outputs (pc_* = positive control, sweep_* = v1.1)
+results/{figures,tables}/  generated outputs (pc_* = positive control, sweep_* = v1.1, profit_* = v1.2)
 DATA_CARD.md  DECISIONS.md  ROADMAP.md  TODO.md  PROJECT.md
 ```
 

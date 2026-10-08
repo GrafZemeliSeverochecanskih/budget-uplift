@@ -1,0 +1,25 @@
+dataset,margin,policy,optimal_fraction,optimal_profit,fraction_ci_low,fraction_ci_high,share_bootstrap_at_point,true_optimal_fraction
+hillstrom,0.3,Profit-targeted (m=0.3),0.9,0.10401296900014721,0.8,0.9,0.618,
+hillstrom,0.3,Revenue-targeted (v1.0),0.9,0.10826315280442415,0.8,1.2,0.614,
+hillstrom,0.3,Best single arm,1.2,0.12992408818553927,1.2,1.2,1.0,
+hillstrom,0.3,Random targeting,1.0,0.08859035140550124,1.0,1.0,0.998,
+hillstrom,0.15,Profit-targeted (m=0.15),0.7,0.010295013051627461,0.0,0.8,0.228,
+hillstrom,0.15,Revenue-targeted (v1.0),0.8,0.01499180561494501,0.0,0.9,0.378,
+hillstrom,0.15,Best single arm,1.2,0.01496204409276999,0.0,1.2,0.758,
+hillstrom,0.15,Random targeting,0.0,0.0,0.0,1.0,0.518,
+hillstrom,0.5,Profit-targeted (m=0.5),0.9,0.23333780774180962,0.8,1.2,0.79,
+hillstrom,0.5,Revenue-targeted (v1.0),0.9,0.2344370671740418,0.8,1.2,0.55,
+hillstrom,0.5,Best single arm,1.2,0.2832068136425674,1.2,1.2,1.0,
+hillstrom,0.5,Random targeting,1.0,0.20765058567583405,1.0,1.0,1.0,
+positive_control,0.3,Profit-targeted (m=0.3),0.4,0.21636626668236197,0.4,0.6524999999999976,0.688,0.4
+positive_control,0.3,Revenue-targeted (v1.0),0.4,0.21633849470529454,0.4,0.8,0.48,0.4
+positive_control,0.3,Best single arm,0.9,0.1753153638303024,0.9,0.9,1.0,0.9
+positive_control,0.3,Random targeting,1.0,0.07594669915147166,0.0,1.0,0.966,1.0
+positive_control,0.15,Profit-targeted (m=0.15),0.4,0.08794135517806803,0.3,0.4,0.608,0.3
+positive_control,0.15,Revenue-targeted (v1.0),0.4,0.09017049735264718,0.3,0.7,0.696,0.3
+positive_control,0.15,Best single arm,0.9,0.047657681915151066,0.9,0.9,0.982,0.9
+positive_control,0.15,Random targeting,0.0,0.0,0.0,1.0,0.64,0.0
+positive_control,0.5,Profit-targeted (m=0.5),0.6,0.3848855071001791,0.4,0.6,0.4,0.4
+positive_control,0.5,Revenue-targeted (v1.0),0.7,0.39376708127705207,0.4,0.8,0.342,0.4
+positive_control,0.5,Best single arm,0.9,0.34552560638383256,0.9,0.9,1.0,0.9
+positive_control,0.5,Random targeting,1.0,0.18657783191912114,1.0,1.0,0.998,1.0
