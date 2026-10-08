@@ -1,0 +1,11 @@
+environment,comparison,difference,ci_low,ci_high,excludes_0
+heterogeneous,Thompson-sampling bandit − Experiment-then-target (k=1),0.027411450986938386,0.0006265367924061134,0.054196365181470654,True
+heterogeneous,Thompson-sampling bandit − Experiment-then-target (k=2),0.020591109404727068,-0.0020799891613248016,0.04326220797077894,False
+heterogeneous,Thompson-sampling bandit − Experiment-then-target (k=4),0.053671881489645815,0.045800380649034064,0.061543382330257565,True
+heterogeneous,Thompson-sampling bandit − Oracle (true τ),-0.08499773515933706,-0.09107043814330332,-0.07892503217537081,True
+heterogeneous,Thompson-sampling bandit − Random targeting,0.1524820067320357,0.14625039171313645,0.15871362175093498,True
+homogeneous,Thompson-sampling bandit − Experiment-then-target (k=1),0.00219023125,-0.010277786462673258,0.01465824896267326,False
+homogeneous,Thompson-sampling bandit − Experiment-then-target (k=2),0.004364749999999997,-0.003946813018631902,0.012676313018631896,False
+homogeneous,Thompson-sampling bandit − Experiment-then-target (k=4),0.009344868749999997,0.0052594120294634375,0.013430325470536558,True
+homogeneous,Thompson-sampling bandit − Oracle (true τ),-0.015832281249999986,-0.019931886199441442,-0.01173267630055853,True
+homogeneous,Thompson-sampling bandit − Random targeting,0.02917144374999999,0.025089310386663545,0.03325357711333644,True

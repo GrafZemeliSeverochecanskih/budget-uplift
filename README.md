@@ -1,12 +1,16 @@
 # Budget-constrained promotion targeting from an RCT
 
-**v1.0: a pre-registered pipeline, extended in later releases.** This README reports v1.0,
-v1.1 ([when does targeting pay off?](#v11--when-does-targeting-pay-off)), v1.2
-([profit objective](#v12--profit-objective)) and v1.3
-([policy learning and chance constraints](#v13--direct-policy-learning-and-a-chance-constrained-budget)). The
-planned extensions (when targeting pays off, profit objective, direct policy learning, sequential
-allocation) are listed in [ROADMAP.md](ROADMAP.md). Each release freezes its config in a commit
-before anything runs on it.
+**v1.0: a pre-registered pipeline, extended in later releases.** Each release freezes its config in
+a commit before anything runs on it; the plan is in [ROADMAP.md](ROADMAP.md) and every later change
+is logged with a reason in [DECISIONS.md](DECISIONS.md).
+
+| Release | Question | Finding |
+|---|---|---|
+| v1.0 | Does uplift targeting beat simple rules on Hillstrom? | No for spend; a small signal for visit that does not beat "Mens e-mail for everyone". A positive control is recovered. |
+| [v1.1](#v11--when-does-targeting-pay-off) | When does targeting pay off? | Gains appear from modest heterogeneity, but at Hillstrom's size one experiment rarely detects them. The null is weak evidence. |
+| [v1.2](#v12--profit-objective) | What if we maximise profit and pick the budget? | The profit objective finds its own budget (known optimum recovered); real data: e-mailing pays, targeting does not. Cross-fitting narrows intervals by 37–58%. |
+| [v1.3](#v13--direct-policy-learning-and-a-chance-constrained-budget) | Policy learning? Random uptake? | Policy trees never beat estimate-then-optimise. Chance constraints cut overruns but miss their target because of the winner's curse. |
+| [v1.4](#v14--sequential-allocation-bandit-vs-experiment-then-target) | Learn while spending? | A Thompson-sampling bandit beats or ties every experiment-then-target design, and costs nothing when there is nothing to learn. |
 
 **Question.** A retailer can afford to e-mail only some customers, and has two e-mails (Mens, Womens)
 of different cost. Can heterogeneous treatment effects estimated from a randomised experiment pick
@@ -404,6 +408,60 @@ Limitations specific to v1.3:
 - The voucher scenario (value, paid on all purchases) is an assumption.
 - The overrun probabilities are verified only in the semi-synthetic setting.
 
+## v1.4 — sequential allocation: bandit vs experiment-then-target
+
+**Question.** Every earlier release assumes a one-shot world: run an experiment, then target
+everyone else with a fixed model. If customers arrive over time and outcomes come back between
+batches, should the policy keep learning as it spends?
+
+**Design** (frozen in config before any v1.4 code ran; DECISIONS S1–S4).
+- **The campaign:** 64,000 customers arrive in 16 batches of 4,000. One total budget (30%) is paced
+  evenly across batches, and the objective is profit at a 30% margin.
+- **The bandit:** bootstrapped Thompson sampling. The S-learner is refit after every batch on a
+  bootstrap resample of all data so far, with 5% of each batch getting a random arm.
+- **Experiment, then target:** a uniform RCT on the first k ∈ {1, 2, 4} batches, then one model
+  fit and kept fixed.
+- **References:** an oracle that knows the true τ, and random targeting.
+- **Two environments:** the positive control (h = 1) and a homogeneous effect (h = 0).
+- **Scoring:** the known expected profit of each policy's choices, over 20 replications. All
+  policies see the same customers and the same outcome draws, so comparisons are paired.
+
+![Sequential](results/figures/sequential.png)
+
+| Total profit per customer (95% CI) | Heterogeneous (h = 1) | Homogeneous (h = 0) |
+|---|---:|---:|
+| Oracle (true τ) | $0.263 | $0.070 |
+| **Thompson-sampling bandit** | **$0.178 [0.172, 0.184]** (68% of oracle) | $0.054 [0.050, 0.058] (77%) |
+| Experiment-then-target, k = 1 | $0.150 [0.123, 0.177] (57%) | $0.052 [0.041, 0.064] |
+| Experiment-then-target, k = 2 | $0.157 [0.135, 0.179] (60%) | $0.050 [0.044, 0.056] |
+| Experiment-then-target, k = 4 | $0.124 [0.117, 0.131] (47%) | $0.045 [0.045, 0.045] |
+| Random targeting | $0.025 | $0.025 |
+
+- **With heterogeneity, the bandit wins and is more reliable.** It beats experiment-then-target
+  with k = 1 by $0.027 [0.001, 0.054] and with k = 4 by $0.054 [0.046, 0.062] per customer. Against
+  the best one-shot design (k = 2) the gain, +$0.021 [−0.002, 0.043], is not significant.
+- **The bandit's main advantage is robustness.** Its interval is 4× narrower than k = 1's, because
+  a one-shot model fit on 4,000 experiment customers is sometimes badly wrong for the rest of the
+  campaign. The bandit corrects itself.
+- **It pays early and gains late.** Per-batch profit rises from random-targeting level in batch 1
+  to about 87% of the oracle's by batch 16. Experiment-then-target plateaus at 56–65% once its model
+  is frozen, so the bandit overtakes it around batch 10 and is still improving at the end.
+- **Bigger experiments are not safer.** k = 4 is the worst targeted policy: a quarter of the
+  customers get a random e-mail, most of them unprofitable, and the extra training data does not
+  buy that back.
+- **Without heterogeneity, adaptivity costs nothing.** The bandit is indistinguishable from k = 1
+  and k = 2, and $0.009 [0.005, 0.013] better than k = 4.
+
+**Link to the real data.** On Hillstrom, v1.0–v1.3 found no targetable spend heterogeneity, which
+is the h ≈ 0 regime here. There the bandit neither helps nor hurts, but it would have picked up
+heterogeneity had it been there, without anyone deciding the experiment size in advance.
+
+Limitations specific to v1.4:
+- The environment is stationary, with no carry-over or e-mail fatigue between batches.
+- Outcomes arrive before the next batch, with no delay.
+- Budget pacing is even, the same for all policies; adaptive pacing could help every policy.
+- Only one bandit algorithm and one learner were tried; ε and the bootstrap are untuned.
+
 ## Limitations
 
 - **SUTVA.** E-mails are assumed not to affect other customers (no household spill-over, no
@@ -435,13 +493,15 @@ Python ≥ 3.11 (developed on 3.12, Windows 11). On Windows without GNU make, us
 python -m venv .venv && . .venv/bin/activate   # Windows: .venv\Scripts\activate
 make install     # pip install -e ".[dev,llm]"   (the llm extra pulls in torch, for one extension)
 make quick       # whole pipeline, 50 bootstrap reps, into results/quick/   (~15 min on 16 cores)
-make all         # full run, 500 reps, regenerates results/                  (~45 min on 16 cores)
+make all         # full run, 500 reps, regenerates results/                  (~55 min on 16 cores, all releases)
 make sweep       # v1.1 heterogeneity x sample-size sweep only (~2 min; also part of make all)
 make sweep-quick # 2x2 grid, 3 replications, into results/quick/ (seconds)
 make profit      # v1.2 profit objective, cross-fitted 5 folds x 10 repeats (~3 min; also in make all)
 make profit-quick # 3 folds x 2 repeats, into results/quick/ (<1 min)
 make policy      # v1.3 policy learning + chance constraint (~3 min; also in make all)
 make policy-quick # reduced folds/grid/draws, into results/quick/ (~1.5 min)
+make sequential  # v1.4 bandit vs experiment-then-target (~1 min; also in make all)
+make sequential-quick # 16k customers, 3 replications, into results/quick/ (seconds)
 make test        # pytest: every estimator tested on simulated data with a known effect
 ```
 
@@ -456,11 +516,12 @@ reuse cached predictions and embeddings.
 config/config.yaml         all analysis choices (fixed before test results; later changes in DECISIONS.md)
 src/uplift_alloc/          library: data, rct, cate, metrics, allocate, ope, positive_control,
                            confounding, robust_allocate, llm_features, sweep, profit, policy_learning,
-                           chance, run_all, plotting, config
+                           chance, sequential, run_all, plotting, config
 scripts/download_data.py   fetch + validate + hash + split + DATA_CARD.md
 tests/                     pytest suite (simulated ground truth for every estimator)
 results/{figures,tables}/  generated outputs (pc_* = positive control, sweep_* = v1.1, profit_* = v1.2,
-                           policylearn_* / chance_* = v1.3)
+                           policylearn_* / chance_* = v1.3,
+                           sequential_* = v1.4)
 DATA_CARD.md  DECISIONS.md  ROADMAP.md  TODO.md  PROJECT.md
 ```
 

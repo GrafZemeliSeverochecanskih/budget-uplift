@@ -44,10 +44,10 @@ Goal: compare doubly robust policy learning against estimate-then-optimise.
 - [x] Head-to-head with estimate-then-optimise on real and semi-synthetic data
 - [x] Chance-constrained budget for random customer uptake
 
-## v1.4 — sequential allocation
+## v1.4 — sequential allocation (done)
 
 Goal: compare a budgeted contextual bandit with one-shot "experiment, then target".
 
-- [ ] Semi-synthetic sequential environment built on the v1.0 generator
-- [ ] Budgeted contextual bandit
-- [ ] Comparison with "experiment, then target" at equal total budget, with intervals
+- [x] Semi-synthetic sequential environment built on the v1.0 generator
+- [x] Budgeted contextual bandit
+- [x] Comparison with "experiment, then target" at equal total budget, with intervals
