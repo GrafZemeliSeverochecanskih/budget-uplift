@@ -94,3 +94,11 @@ test-set results, with its date and reason. Config values live in `config/config
   `mingw32-make install && mingw32-make all && mingw32-make test` → exit 0, 88 tests passed,
   `make all` 34 min on 16 cores. The data hash matched `data/DATA_VERSION.txt`.
 - All 12 result tables are bit-identical to the ones the README quotes (solver wall-clock columns excluded).
+
+## Verification after v1.4 (2026-10-09)
+
+- Fresh-clone check of the full repo at tag `v1.4`: `git archive` into an empty directory, new Python 3.12
+  venv, `mingw32-make install && mingw32-make all && mingw32-make test` → exit 0, 120 tests passed,
+  `make all` 61 min on 16 cores (every release, v1.0–v1.4). The data hash matched `data/DATA_VERSION.txt`.
+- All 32 result tables and the learned policy-tree text are identical to the committed ones
+  (largest numeric difference 2e-16; solver wall-clock columns excluded).

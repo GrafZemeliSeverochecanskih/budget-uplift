@@ -493,7 +493,7 @@ Python ≥ 3.11 (developed on 3.12, Windows 11). On Windows without GNU make, us
 python -m venv .venv && . .venv/bin/activate   # Windows: .venv\Scripts\activate
 make install     # pip install -e ".[dev,llm]"   (the llm extra pulls in torch, for one extension)
 make quick       # whole pipeline, 50 bootstrap reps, into results/quick/   (~15 min on 16 cores)
-make all         # full run, 500 reps, regenerates results/                  (~55 min on 16 cores, all releases)
+make all         # full run, 500 reps, regenerates results/                  (~60 min on 16 cores, all releases)
 make sweep       # v1.1 heterogeneity x sample-size sweep only (~2 min; also part of make all)
 make sweep-quick # 2x2 grid, 3 replications, into results/quick/ (seconds)
 make profit      # v1.2 profit objective, cross-fitted 5 folds x 10 repeats (~3 min; also in make all)
