@@ -185,6 +185,25 @@ chance:
     positive_control: {learner: S}
     hillstrom: {learner: X}
 
+# v1.5 selection-aware chance constraint. FROZEN in its own commit before any v1.5 code ran.
+# Reuses the v1.3b scenario unchanged (block `chance`: voucher, margin, epsilon, budgets, folds, repeats, MC draws,
+# datasets, learners) and adds two corrections for the winner's curse in estimated uptake p-hat:
+#   A) recalibrated: inside each cross-fitting training fold, `calibration_inner_folds` splits; models fit on one
+#      part, the allocator selects customers on the other part (same budget per customer), and the bias factor
+#      kappa_b = sum_selected 1[T_i = a_i] conv_i / e  /  sum_selected p-hat[i, a_i]   (e = 1/3, IPW)
+#      is pooled over the parts, per budget, floored at `kappa_floor`. In the campaign p-hat is replaced by
+#      min(kappa_b * p-hat, 0.99) in the profit score, the expected cost and its variance, then the plain
+#      chance-constrained allocation runs.
+#   B) conservative: p-hat is refit on `bootstrap_fits` bootstrap resamples of the training fold; the
+#      `upper_quantile` of p-hat per customer and arm replaces p-hat in the expected cost and variance used by the
+#      constraint (the profit score keeps the point p-hat).
+# Compared on the same campaigns with the v1.3 mean-budget and plug-in chance-constrained policies.
+chance_v15:
+  calibration_inner_folds: 2
+  kappa_floor: 1.0
+  bootstrap_fits: 20
+  upper_quantile: 0.90
+
 # v1.4 sequential allocation. FROZEN in its own commit before any v1.4 code ran.
 # A campaign of `customers` (covariates resampled from Hillstrom) arrives in batches; outcomes of a batch are seen
 # before the next. One total budget (fraction * customers * mean e-mail cost), paced evenly: each batch may spend
@@ -233,6 +252,8 @@ quick:
     customers: 16000
     replications: 3
     ett_explore_batches: [1]
+  chance_v15:                  # make chance15-quick (also uses the `chance` quick overrides)
+    bootstrap_fits: 5
 
 criteo:
   enabled: false

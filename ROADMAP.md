@@ -51,3 +51,14 @@ Goal: compare a budgeted contextual bandit with one-shot "experiment, then targe
 - [x] Semi-synthetic sequential environment built on the v1.0 generator
 - [x] Budgeted contextual bandit
 - [x] Comparison with "experiment, then target" at equal total budget, with intervals
+
+## v1.5 — selection-aware chance constraint
+
+Goal: make the v1.3 chance constraint deliver its promised overrun probability by correcting the
+winner's curse in estimated uptake among the customers the allocator selects.
+
+- [ ] Recalibration design frozen in config before running
+- [ ] Selection-aware recalibration of uptake (bias factor estimated on held-out selected customers)
+- [ ] Conservative alternative: bootstrap upper quantile of uptake
+- [ ] Head-to-head with the v1.3 mean-budget and plug-in chance policies on the same campaigns, true overrun on the positive control
+- [ ] README section, `make chance15` / `make chance15-quick`, tests
