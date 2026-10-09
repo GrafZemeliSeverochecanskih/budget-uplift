@@ -1,0 +1,623 @@
+% Budget-constrained uplift targeting: a pre-registered study on the Hillstrom e-mail experiment.
+% Compile with pdfLaTeX + BibTeX (Overleaf default). Figures are in figures/, references in references.bib.
+\documentclass[10pt,twocolumn]{article}
+
+\usepackage[a4paper,top=2cm,bottom=2.2cm,left=1.7cm,right=1.7cm,columnsep=0.6cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{newtxtext,newtxmath}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{xcolor}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[hidelinks]{hyperref}
+\usepackage{microtype}
+
+\captionsetup{font=small,labelfont=bf}
+\setlength{\abovecaptionskip}{4pt}
+\setlength{\textfloatsep}{10pt}
+
+% ---- edit before publishing -------------------------------------------------------------
+\newcommand{\repourl}{\url{https://github.com/USERNAME/budgeted-uplift}}
+% ----------------------------------------------------------------------------------------
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\ind}{\mathbf{1}}
+\newcommand{\tauh}{\hat{\tau}}
+\newcommand{\muh}{\hat{\mu}}
+\newcommand{\CI}[2]{\ensuremath{[#1,\,#2]}}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+\title{\Large\bfseries When Does Uplift Targeting Pay Off?\\
+A Pre-registered, Budget-Constrained Study of the Hillstrom E-mail Experiment}
+\author{Simion Polivencu}
+\date{}
+
+\begin{document}
+
+\twocolumn[
+\begin{@twocolumnfalse}
+\maketitle
+\vspace{-1.5em}
+\begin{abstract}
+Uplift models promise to send a promotion only to the customers it persuades, but their value is
+rarely tested end to end: from a randomised experiment, through heterogeneous-effect estimation and
+budget-constrained optimisation, to an unbiased estimate of the money the resulting policy earns.
+We run that full pipeline on the Hillstrom e-mail experiment (64{,}000 customers, three randomised
+arms) under a release protocol in which every analysis choice is frozen in a commit before it is
+run. Five uplift learners fail to rank customers better than random on two-week spend, and the
+model-targeted policy does not beat the one-line rule ``send the better e-mail to a random subset''
+at any budget. A semi-synthetic positive control on the same covariates and assignment shows that
+the same code recovers a known effect (correlation of estimated and true effects up to $0.83$;
+$+\$0.50$ $\CI{0.27}{0.75}$ per customer over random targeting at a 30\% budget). A sweep over
+effect heterogeneity and sample size shows why: at Hillstrom's size a single experiment detects a
+real gain over the best single arm in only 5--25\% of replications unless most of the effect is
+concentrated in a third of customers. We further show that (i) repeated cross-fitting narrows
+policy-value intervals by 37--58\% while accounting for model-refit variance; (ii) a profit
+objective selects its own budget and recovers the known optimum; (iii) doubly robust policy trees
+never outperform estimate-then-optimise; (iv) plug-in chance constraints on random voucher uptake
+are defeated by the optimiser's curse; and (v) a budgeted Thompson-sampling bandit beats or ties
+every experiment-then-target design. All code, configurations and results are public and
+reproduce bit-for-bit from a fresh clone.
+\end{abstract}
+\vspace{1.2em}
+\end{@twocolumnfalse}
+]
+
+% =========================================================================================
+\section{Introduction}
+\label{sec:intro}
+
+Marketing budgets are finite, so a firm that can send two different promotional e-mails must
+decide \emph{who} receives \emph{which} e-mail, and how much to spend in total. Uplift modelling
+\citep{radcliffe2007,gutierrez2017} answers the first question by estimating, for each customer, the
+conditional average treatment effect (CATE) of each promotion and targeting those with the largest
+predicted lift. A rich literature on meta-learners \citep{kunzel2019,kennedy2023,nie2021} and causal
+forests \citep{wager2018,athey2019grf} makes such estimates easy to produce. Whether they are
+\emph{good enough to change a decision} is a different question, and it is the one a business
+cares about.
+
+Answering it requires connecting four steps that are usually studied separately:
+(1)~a randomised experiment that identifies causal effects;
+(2)~a model of how those effects vary across customers;
+(3)~an optimisation that turns noisy effect estimates into a feasible allocation under a budget;
+(4)~an unbiased, uncertainty-quantified evaluation of the policy that results.
+Errors compound along this chain. A learner that is ``better than random'' on a ranking metric may
+still lose money once the budget is spent, and an optimiser fed noisy estimates systematically
+over-promises \citep{smith2006}.
+
+This paper runs the full chain on the Hillstrom e-mail experiment \citep{hillstrom2008} and reports
+what survives. Our emphasis is on credibility rather than on a new estimator:
+\begin{itemize}\setlength\itemsep{1pt}
+  \item \textbf{Pre-registration by commit.} Every release freezes its configuration (seeds, splits,
+        grids, costs, budgets) in a version-control commit \emph{before} the code that uses it is run,
+        in the spirit of \citet{nosek2018}. Post-result changes are logged with reasons.
+  \item \textbf{Positive control.} Real covariates and real treatment assignment are combined with
+        simulated outcomes whose CATE is known, so that a null result on real data can be
+        distinguished from a blind spot of the method.
+  \item \textbf{Honest negatives.} Learners that do not beat a baseline, intervals that do not
+        cover, and constraints that do not hold are reported, not tuned away.
+\end{itemize}
+
+\paragraph{Contributions.}
+(i) An end-to-end, multi-arm, budget-constrained uplift pipeline with doubly robust off-policy
+evaluation, whose central finding on Hillstrom is negative for spend.
+(ii) A semi-synthetic positive control and a heterogeneity$\times$sample-size sweep that quantify
+how weak that negative evidence is.
+(iii) Four extensions, each pre-registered: a profit objective with repeated cross-fitting,
+doubly robust policy learning, chance-constrained budgets under random uptake, and a budgeted
+bandit. Section~\ref{sec:related} reviews related work, Section~\ref{sec:data} the data and protocol,
+Section~\ref{sec:methods} the methods, Section~\ref{sec:results} the results, and
+Section~\ref{sec:discussion} limitations.
+
+% =========================================================================================
+\section{Related work}
+\label{sec:related}
+
+\paragraph{Uplift modelling and CATE estimation.}
+Uplift modelling originated in direct marketing, where \citet{radcliffe2007} introduced the Qini
+curve for evaluating lift-based targeting; \citet{gutierrez2017} connect it to the potential-outcomes
+framework \citep{rubin1974,imbens2015}. Multi-treatment uplift is treated by \citet{zhao2017} and
+benchmarked by \citet{olaya2020}. Meta-learners reduce CATE estimation to supervised learning: the
+S-, T- and X-learners of \citet{kunzel2019}, the DR-learner \citep{kennedy2023} and the R-learner
+\citep{nie2021}. Causal forests \citep{wager2018,athey2019grf} adapt random forests to effect
+estimation with valid inference. Double/debiased machine learning \citep{chernozhukov2018}
+provides the cross-fitting framework we use for evaluation.
+
+\paragraph{Policy evaluation and learning.}
+Inverse-propensity weighting \citep{horvitz1952} and augmented, doubly robust estimators
+\citep{robins1994,dudik2011} evaluate a policy from randomised or logged data. Policy learning
+maximises such estimates directly over a restricted policy class
+\citep{kitagawa2018,athey2021}; we compare it against the more common estimate-then-optimise
+approach.
+
+\paragraph{Budgeted allocation.}
+Assigning at most one of several costly treatments per customer under a budget is a
+multiple-choice knapsack problem \citep{sinha1979,kellerer2004}; Lagrangian relaxation
+\citep{everett1963} gives fast near-optimal solutions. Chance-constrained programming
+\citep{charnes1959} handles random costs, and the optimiser's curse \citep{smith2006} explains why
+plug-in optimisation over estimates is systematically optimistic.
+
+\paragraph{Sequential decisions.}
+Thompson sampling \citep{thompson1933,russo2018}, here in its bootstrap form \citep{eckles2014},
+balances exploration and exploitation; bandits with knapsacks \citep{badanidiyuru2018} formalise
+budget constraints in that setting.
+
+\paragraph{Variance reduction in experiments.}
+CUPED \citep{deng2013} and fully interacted regression adjustment \citep{lin2013} use pre-period
+covariates to sharpen average-effect estimates; we use the latter as our adjusted estimator.
+
+% =========================================================================================
+\section{Data and protocol}
+\label{sec:data}
+
+\paragraph{The Hillstrom experiment.}
+The MineThatData challenge data \citep{hillstrom2008} contain $64{,}000$ customers who purchased in
+the previous twelve months, randomised in equal thirds to a men's-merchandise e-mail (``Mens''),
+a women's-merchandise e-mail (``Womens'') or no e-mail. Covariates are recency (months since last
+purchase), past-year spend (\texttt{history}), indicators for past men's and women's purchases, a new-customer
+flag, zip-code type and purchase channel. Outcomes over the following two weeks are a website visit
+(base rate $14.7\%$), a conversion ($0.9\%$) and spend (mean \$1.05, heavily right-skewed; mean
+\$116 among buyers). The data were obtained through \texttt{scikit-uplift} \citep{sklift} and verified
+against a recorded SHA-256 hash. Balance is excellent: the largest standardised mean difference
+between any treated arm and control across 11 encoded covariates is $0.014$.
+
+\paragraph{Split.}
+A single 70/30 split, stratified by arm, gives 44{,}800 training and 19{,}200 test customers.
+Everything that is fitted or selected uses training data only; the test split is used once per
+analysis.
+
+\paragraph{Costs and budgets.}
+Hillstrom contains no cost data. We assume \$0.10 per Mens and \$0.08 per Womens e-mail, so that the
+choice of e-mail is a genuine trade-off, and express a budget as a fraction $f$ of the cost of
+e-mailing every customer at the average e-mail cost, $B = f\cdot n\cdot \bar c$ with
+$\bar c=\$0.09$.
+
+\paragraph{Release protocol.}
+The study was carried out as five releases (v1.0--v1.4). For each, the configuration was committed
+before any code that uses it was written, and changes made after seeing results are logged with a
+reason (five such changes in total, e.g.\ a replacement of a single random draw by a permutation null
+as the random baseline). The complete history, configuration and a decision log are public
+(\repourl).
+
+% =========================================================================================
+\section{Methods}
+\label{sec:methods}
+
+\subsection{Setting and identification}
+Customer $i$ has covariates $X_i$, receives arm $T_i\in\{0,1,2\}$ (no e-mail, Mens, Womens) and has
+potential outcomes $Y_i(a)$. Under SUTVA and randomisation with known propensity $e(a)=\Prob(T=a)=1/3$,
+the conditional effect of arm $a$,
+\begin{equation}
+  \tau_a(x) = \E\big[Y(a)-Y(0)\mid X=x\big],
+\end{equation}
+is identified, and the propensity is plugged in rather than estimated everywhere except in a
+deliberately confounded extension.
+
+\paragraph{Average effects.}
+For arm $a$ against control we report the difference in means with a Welch interval and the
+fully interacted regression adjustment of \citet{lin2013},
+\begin{equation}
+  Y_i = \alpha + \beta D_i + (X_i-\bar X)^{\top}\gamma + D_i (X_i-\bar X)^{\top}\delta + \varepsilon_i,
+\end{equation}
+where $D_i=\ind[T_i=a]$ and $\hat\beta$ estimates the ATE with HC2 standard errors; with \texttt{history}
+as the only covariate this is CUPED \citep{deng2013}.
+
+\subsection{CATE learners}
+All base models are LightGBM regressors \citep{ke2017} with one parameter set per outcome, chosen by
+3-fold cross-validated MSE of the outcome model on training data.
+The \emph{S-learner} fits $\mu(x,a)$ on $[x,\text{onehot}(a)]$ and sets
+$\tauh_a(x)=\muh(x,a)-\muh(x,0)$; the \emph{T-learner} fits one $\muh_a$ per arm. The
+\emph{X-learner} \citep{kunzel2019} imputes individual effects
+\begin{equation}
+  \tilde D^{1}_i = Y_i-\muh_0(X_i)\ (T_i=a), \qquad \tilde D^{0}_i = \muh_a(X_i)-Y_i\ (T_i=0),
+\end{equation}
+regresses each on $X$ to obtain $\tauh^1_a,\tauh^0_a$, and combines them as
+$\tauh_a = g\,\tauh^0_a + (1-g)\,\tauh^1_a$ with the known within-pair propensity $g=1/2$.
+The \emph{DR-learner} \citep{kennedy2023} regresses the doubly robust pseudo-outcome
+\begin{equation}
+  \Gamma_{ia} = \muh_a(X_i) + \frac{\ind[T_i=a]}{e(a)}\big(Y_i-\muh_a(X_i)\big)
+  \label{eq:gamma}
+\end{equation}
+difference $\Gamma_{ia}-\Gamma_{i0}$ on $X$, and the \emph{causal forest} uses CausalForestDML from
+EconML \citep{econml,athey2019grf}, both with the known propensity. The learner used downstream is
+chosen on a 25\% hold-out of the training data.
+
+\paragraph{Ranking metrics.}
+For arm $a$ against control, sort test customers by $\tauh_a$ and let $N_T(k),N_C(k)$ and
+$Y_T(k),Y_C(k)$ be the counts and outcome sums of treated and control customers among the top $k$.
+The Qini curve \citep{radcliffe2007} is
+\begin{equation}
+  Q(k) = Y_T(k) - Y_C(k)\,\frac{N_T(k)}{N_C(k)},
+\end{equation}
+and the Qini coefficient is the area between $Q$ and the line of random targeting. Its random
+baseline is a permutation null over 500 random orderings; intervals are percentile bootstrap
+intervals over test rows \citep{efron1993}.
+
+\subsection{Budget-constrained allocation}
+With $x_{ia}\in\{0,1\}$ indicating that customer $i$ receives arm $a\in\{1,2\}$, costs $c_a$ and
+budget $B$, the allocation problem is the multiple-choice knapsack \citep{sinha1979}
+\begin{equation}
+\begin{aligned}
+  \max_{x}\ \ & \textstyle\sum_{i}\sum_{a} \tauh_{ia}\, x_{ia}\\
+  \text{s.t.}\ \ & \textstyle\sum_{a} x_{ia}\le 1\ \ \forall i, \qquad \sum_{i}\sum_{a} c_a\, x_{ia}\le B.
+\end{aligned}
+\label{eq:ip}
+\end{equation}
+We solve \eqref{eq:ip} exactly with SCIP \citep{scip8} through OR-Tools \citep{ortools}, after
+removing pairs with $\tauh_{ia}\le 0$ (which cannot be in an optimal solution). The Lagrangian
+heuristic \citep{everett1963} assigns
+$a^\star_i(\lambda)=\argmax_{a\in\{0,1,2\}}\{\tauh_{ia}-\lambda c_a\}$ (with value $0$ for no e-mail)
+and bisects $\lambda\ge 0$ until the spend fits $B$; the dual function
+\begin{equation}
+  L(\lambda) = \textstyle\sum_i \max\big(0,\max_a(\tauh_{ia}-\lambda c_a)\big) + \lambda B
+\end{equation}
+upper-bounds the optimum. From v1.1 on, leftover budget is spent greedily by $\tauh_{ia}/c_a$
+(``repair''), which fixes the all-or-nothing behaviour of the heuristic on groups with tied
+$\tauh$.
+
+\subsection{Off-policy evaluation}
+A (possibly stochastic) policy assigns probabilities $\pi(a\mid x)$. With known propensity, the
+inverse-propensity \citep{horvitz1952} and doubly robust \citep{robins1994,dudik2011} estimates of its
+value are
+\begin{align}
+  \hat V_{\text{IPW}}(\pi) &= \frac1n\sum_i \frac{\pi(T_i\mid X_i)}{e(T_i)}\,Y_i, \\
+  \hat V_{\text{DR}}(\pi)  &= \frac1n\sum_i \Big[\sum_a \pi(a\mid X_i)\,\muh_a(X_i)
+     + \frac{\pi(T_i\mid X_i)}{e(T_i)}\big(Y_i-\muh_{T_i}(X_i)\big)\Big].
+  \label{eq:dr}
+\end{align}
+Both are unbiased for any fixed $\muh$ because $e$ is known. Random targeting and ``best single
+arm'' baselines are evaluated as stochastic policies whose expected cost equals the budget, so
+their values carry no Monte-Carlo noise. Incremental values are reported against sending nothing,
+with paired bootstrap intervals.
+
+\paragraph{Repeated cross-fitting (v1.2 on).}
+Evaluating on a single test split ignores model-refit variance and uses only 30\% of the data. We
+therefore also evaluate on all customers by $K$-fold cross-fitting \citep{chernozhukov2018}: for
+each fold the learner and $\muh$ are fitted on the other folds, the policy is allocated on the
+held-out fold, and the per-customer DR scores of \eqref{eq:dr} are averaged. Repeating with $R$
+fold splits gives estimates $\hat\theta_r$ and standard errors $\hat\sigma_r$, combined as
+\begin{equation}
+  \hat\theta = \operatorname{median}_r \hat\theta_r,\qquad
+  \hat\sigma^2 = \operatorname{median}_r\big(\hat\sigma_r^2 + (\hat\theta_r-\hat\theta)^2\big),
+  \label{eq:dml}
+\end{equation}
+so that the interval reflects both sampling and refit variability.
+
+\subsection{Positive control and heterogeneity sweep}
+\label{sec:pc}
+The positive control keeps the real $X_i$ and $T_i$ and simulates outcomes. Baseline visit and
+purchase probabilities rise with standardised log history $z_i$,
+$v_0(x)=0.10\,e^{0.3z}$ and $p_0(x)=0.006\,e^{0.3z}$; arm $a$ adds $\delta^{v}_a(x)$ and
+$\delta^{p}_a(x)$; spend is a purchase indicator times a LogNormal amount with mean \$100
+($\sigma=1$), and a purchase implies a visit. Hence
+\begin{equation}
+  \tau^{\text{spend}}_a(x) = 100\cdot\delta^{p}_a(x).
+\end{equation}
+The Mens e-mail adds $0.2$ percentage points (pp) of purchase probability everywhere; the Womens
+e-mail adds $3$\,pp, but only in the segment $S=\{\texttt{womens}=1,\ \texttt{recency}\le 6\}$
+(32\% of customers). The simulated data match the real base rates closely (test visit rate
+13.3\%, purchase rate 1.0\%, mean spend \$1.04).
+
+For the sweep (v1.1) the Womens effect keeps its customer average $\bar\delta$ while a heterogeneity
+parameter $h\in[0,1]$ concentrates it in $S$ (share $s=0.32$):
+\begin{equation}
+  \delta_{\text{in}} = \bar\delta\Big(1+h\,\frac{1-s}{s}\Big), \qquad \delta_{\text{out}} = \bar\delta\,(1-h),
+\end{equation}
+so $h=0$ is homogeneous and $h=1$ is the positive control. Each of $5\times4\times20$ replications
+resamples $n$ customers, re-randomises arms, fits the S-learner, allocates the test customers at a
+30\% budget and records both the \emph{true} gain (known from $\tau$) and the analyst's DR estimate
+with an influence-function 95\% interval.
+
+\subsection{Profit objective}
+With gross margin $m$ (assumed 30\%; sensitivity 15\% and 50\%), the incremental profit of a policy is
+\begin{equation}
+  \Pi(\pi) = m\,\big[V(\pi)-V(\pi_0)\big] - \textstyle\frac1n\sum_i\sum_a \pi(a\mid X_i)\,c_a,
+\end{equation}
+where $\pi_0$ sends nothing. The \emph{profit-targeted} policy replaces $\tauh_{ia}$ by
+$m\tauh_{ia}-c_a$ in \eqref{eq:ip}, so it e-mails only customers whose expected margin exceeds the
+e-mail cost and may leave budget unspent. The profit-optimal budget is the arg-max over a budget
+grid, with a customer-bootstrap percentile interval.
+
+\subsection{Direct policy learning}
+Doubly robust policy learning \citep{athey2021} skips the CATE model and maximises
+\begin{equation}
+  \hat\pi = \argmax_{\pi\in\Pi}\ \sum_i \Big[m\,\Gamma_{i,\pi(X_i)} - (1+\lambda)\,c_{\pi(X_i)}\Big]
+\end{equation}
+over depth-2 and depth-3 policy trees (EconML \texttt{PolicyTree}), with $\Gamma$ from
+\eqref{eq:gamma} cross-fitted inside each training fold and $\lambda$ the smallest grid value whose
+training spend fits the budget. It is compared with estimate-then-optimise on identical folds.
+
+\subsection{Chance-constrained budget}
+Suppose each e-mail carries a \$5 voucher, paid on every purchase by a targeted customer. With
+purchase probability $p_{ia}$, the cost of e-mailing $i$ with arm $a$ has mean $c_a+5p_{ia}$ and
+variance $25\,p_{ia}(1-p_{ia})$, so the campaign cost $C(\pi)$ is random. A mean-budget policy
+requires $\E[C]\le B$; the chance-constrained policy \citep{charnes1959} requires
+\begin{equation}
+  \Prob\big(C(\pi)>B\big)\le\varepsilon \;\Longleftarrow\;
+  \E[C(\pi)] + z_{1-\varepsilon}\sqrt{\operatorname{Var}[C(\pi)]}\le B,
+\end{equation}
+with $\varepsilon=0.05$, solved by bisection on an effective budget, using estimated $\hat p$. On
+the positive control, where the true $p$ is known, overruns are counted by Monte Carlo.
+
+\subsection{Sequential allocation}
+In v1.4 a campaign of 64{,}000 customers arrives in 16 batches of 4{,}000, outcomes of a batch are
+observed before the next, and one budget ($f=0.3$) is paced evenly. A bootstrapped Thompson-sampling
+bandit \citep{thompson1933,eckles2014} refits the S-learner after every batch on a bootstrap
+resample of all logged data and allocates on the resulting $\tauh$, with 5\% uniform exploration.
+Experiment-then-target runs a uniform RCT on the first $k\in\{1,2,4\}$ batches and then fixes its
+model. Potential outcomes are coupled across arms so that all policies face identical customers and
+outcome draws, and each is scored by the known expected profit of its assignments.
+
+% =========================================================================================
+\section{Results}
+\label{sec:results}
+
+\subsection{The experiment works; covariates barely help}
+Both e-mails raise every outcome (Table~\ref{tab:ate}). Regression adjustment narrows the spend
+interval by only 0.1\% (visit: 1.5\%), because pre-period covariates explain almost none of
+two-week spend. Detecting the observed spend effect at 80\% power needs 5{,}953 customers per arm
+for Mens but 15{,}808 for Womens (range 6{,}160--99{,}739 over the effect's interval); the minimum
+detectable spend effect with the available $\approx$21{,}300 per arm is \$0.37--0.41.
+
+\begin{table}[t]
+\centering\small
+\caption{Average effects vs.\ no e-mail on all 64{,}000 customers (difference in means, 95\% CI).}
+\label{tab:ate}
+\begin{tabular}{lrr}
+\toprule
+Outcome & Mens e-mail & Womens e-mail \\
+\midrule
+Spend (\$)      & $0.77$ \CI{0.49}{1.05} & $0.42$ \CI{0.17}{0.68} \\
+Visit (pp)      & $7.7$ \CI{7.0}{8.3}    & $4.5$ \CI{3.9}{5.2} \\
+Conversion (pp) & $0.68$ \CI{0.50}{0.86} & $0.31$ \CI{0.15}{0.47} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{No learnable targeting signal for spend}
+No learner ranks customers better than random on spend: all ten learner$\times$arm Qini intervals
+contain zero and every one-sided permutation $p$-value is at least $0.24$ (Table~\ref{tab:qini},
+Figure~\ref{fig:qini}). On \emph{visit}, the outcome with the most signal, all five learners
+rank the Womens effect better than random ($p=0.004$), whereas the Mens effect is not targetable.
+
+\begin{table}[t]
+\centering\small
+\caption{Qini coefficients on the test split (95\% bootstrap CI). Random: mean and 95\% band of
+500 random orderings.}
+\label{tab:qini}
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{lrrr}
+\toprule
+ & \multicolumn{2}{c}{Spend (\$)} & Visit \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-4}
+Learner & Mens & Womens & Womens \\
+\midrule
+S             & $\phantom{-}0.013$ \CI{-.078}{.103} & $-0.005$ \CI{-.079}{.067} & $.0032$ \CI{.0016}{.0050} \\
+T             & $-0.016$ \CI{-.096}{.057} & $\phantom{-}0.010$ \CI{-.068}{.093} & $.0027$ \CI{.0010}{.0044} \\
+X             & $\phantom{-}0.001$ \CI{-.078}{.080} & $\phantom{-}0.010$ \CI{-.065}{.088} & $.0027$ \CI{.0011}{.0043} \\
+DR            & $-0.038$ \CI{-.127}{.042} & $\phantom{-}0.026$ \CI{-.056}{.112} & $.0026$ \CI{.0008}{.0043} \\
+C.\ forest    & $\phantom{-}0.012$ \CI{-.058}{.100} & $\phantom{-}0.024$ \CI{-.054}{.109} & $.0030$ \CI{.0014}{.0048} \\
+Random        & $-0.005$ \CI{-.086}{.073} & $\phantom{-}0.000$ \CI{-.062}{.065} & $.0000$ \CI{-.0016}{.0018} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/qini_curves.png}
+\caption{Qini curves for spend on the test split. Every learner stays inside the 95\% band of
+random orderings (grey).}
+\label{fig:qini}
+\end{figure}
+
+\subsection{Targeted policies do not beat simple rules}
+Allocating with \eqref{eq:ip} on the train-selected X-learner and evaluating with \eqref{eq:dr},
+the targeted policy is indistinguishable from random targeting at every budget and its point
+estimate lies \emph{below} ``Mens e-mail to a random subset'' throughout (Figure~\ref{fig:headline},
+left). At $f=1$ it earns $+\$0.31$ \CI{-0.18}{0.83} per customer against $+\$0.56$ \CI{0.11}{1.03} for
+the Mens rule; the paired difference is $-\$0.25$ \CI{-0.59}{0.09}. On visit the targeted policy
+beats random targeting at 7 of 10 budgets but the Mens rule at only one.
+
+\paragraph{Solvers.} SCIP proves optimality of \eqref{eq:ip} on all 33 instances up to $n=64{,}000$
+(median 45.6\,s). The Lagrangian heuristic is always feasible, within $0.34\%$ of the optimum, and
+about $200\times$ faster (0.23\,s). CP-SAT, by contrast, finds no feasible solution within 30\,s for
+9 of 10 budgets at $n=10{,}000$: the near-integral LP relaxation of the multiple-choice knapsack
+favours LP-based branch-and-bound.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.49\textwidth]{figures/policy_value_vs_budget.png}\hfill
+\includegraphics[width=0.49\textwidth]{figures/pc_policy_value_vs_budget.png}
+\caption{Incremental spend per customer vs.\ budget (doubly robust, 95\% bootstrap CI). Left: real
+Hillstrom outcomes; the uplift policy never separates from simple rules. Right: positive control
+with the same covariates, assignment and code; $\times$ marks the known true value of each policy.}
+\label{fig:headline}
+\end{figure*}
+
+\subsection{The positive control is recovered}
+On the positive control the unchanged pipeline finds the effect (Table~\ref{tab:pc},
+Figure~\ref{fig:headline}, right). For the Womens arm all five learners beat the permutation null
+($p\le0.022$) with Qini values indistinguishable from an oracle that ranks by the true $\tau$, and
+estimated effects correlate with the truth at $0.62$--$0.83$ (spend) and $0.90$--$0.96$ (visit).
+For the Mens arm the true effect is constant, so every learner \emph{and} the oracle have Qini near
+zero, as they should. The targeted policy beats random targeting at 8 of 10 budgets for spend
+($+\$0.50$ \CI{0.27}{0.75} at $f=0.3$) and at all budgets for visit, and its known true value is
+90--98\% of the oracle's. DR intervals cover the true policy value in 73 of 80 cases; the seven
+misses are visit, concentrated on nearly identical policies, and reflect one test draw about two
+standard errors high.
+
+\begin{table}[t]
+\centering\small
+\caption{Positive control, Womens arm: Qini (spend, \$) and correlation of $\tauh$ with the true $\tau$.}
+\label{tab:pc}
+\begin{tabular}{lrrr}
+\toprule
+Learner & Qini, spend & $\rho$, spend & $\rho$, visit \\
+\midrule
+S          & $0.076$ \CI{-.027}{.164} & $0.83$ & $0.96$ \\
+T          & $0.095$ \CI{.019}{.166}  & $0.65$ & $0.92$ \\
+X          & $0.100$ \CI{.029}{.175}  & $0.75$ & $0.94$ \\
+DR         & $0.111$ \CI{.042}{.178}  & $0.62$ & $0.91$ \\
+C.\ forest & $0.089$ \CI{.011}{.167}  & $0.65$ & $0.90$ \\
+Oracle     & $0.098$ \CI{.013}{.171}  & $1$    & $1$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{When does targeting pay off?}
+Figure~\ref{fig:sweep} maps the true gain of targeting over $h$ and $n$. Against the best single arm,
+which isolates the value of heterogeneity, targeting truly pays from $h=0.25$ when $n\ge16{,}000$
+(e.g.\ $+\$0.06$ \CI{0.05}{0.08} per customer at $n=64{,}000$) and at every $n$ from $h=0.5$, while at
+$h=0$ it earns nothing ($-\$0.007$ \CI{-0.013}{0.000}). Detection, however, lags far behind: at
+Hillstrom's size a single experiment's DR interval excludes zero in only 5\%, 25\%, 85\% and 95\%
+of replications for $h=0.25,0.5,0.75,1$. Between ``targeting would earn more'' and ``one can show
+that it does'' lies a band in which the policy is worth \$0.04--0.23 per customer yet looks like
+noise. The Hillstrom null is therefore weak evidence \emph{against} heterogeneity, all the more
+because Hillstrom's real Womens effect (\$0.42) is less than half the simulated average (\$0.96).
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/sweep_heatmap.png}
+\caption{True gain from targeting over heterogeneity $h$ and sample size $n$ (mean of 20
+replications). Outlined cells: 95\% interval excludes zero. ``Detected'': share of single
+experiments whose DR interval lies above zero.}
+\label{fig:sweep}
+\end{figure*}
+
+\subsection{Profit and cross-fitting}
+With a profit objective (Figure~\ref{fig:profit}) the targeted policy chooses its own budget: on the
+positive control its profit-optimal budget is $f=0.4$ \CI{0.4}{0.65}, matching the true optimum
+$0.4$, and when unconstrained it stops at \$0.047 of spend per customer while earning
+\$0.211 \CI{0.132}{0.290} (true \$0.240), more than revenue targeting (\$0.173, true \$0.217). On real
+Hillstrom no policy separates from any other (0 of 33 paired comparisons), and the best point
+estimate is again the simplest rule, Mens e-mail to everyone (\$0.130 \CI{0.045}{0.215}). Whether
+e-mailing pays at all hinges on the assumed margin.
+
+Repeated cross-fitting \eqref{eq:dml} narrows policy-value intervals by 37--58\% relative to the
+test split, while now including refit variance, and its intervals cover the known true profit in 142
+of 143 positive-control cases. With it, the real data do establish that e-mailing pays
+($+\$0.65$ \CI{0.37}{0.93} revenue per customer at $f=1$, where the test split gave
+\CI{-0.18}{0.83}); they still do not establish that \emph{targeting} pays.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/profit_vs_budget.png}
+\caption{Incremental profit vs.\ budget at a 30\% margin, cross-fitted on all customers
+($5$ folds $\times$ $10$ repeats). Triangle: profit-optimal budget with 95\% bootstrap interval.}
+\label{fig:profit}
+\end{figure*}
+
+\subsection{Policy learning does not help}
+Doubly robust policy trees never beat estimate-then-optimise (Figure~\ref{fig:pl}). On real data all
+paired differences contain zero, and the depth-2 tree fitted to all customers reads ``Mens e-mail to
+everyone except low-history, very recent customers'', the policy-learning version of the
+best-single-arm result. On the positive control, trees lose clearly at a tight budget ($-\$0.12$
+\CI{-0.18}{-0.07} at $f=0.2$): the profitable segment holds 32\% of customers and a tree can only
+e-mail whole leaves, so it cannot fill a budget smaller than its leaves.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/policy_learning.png}
+\caption{Policy trees vs.\ estimate-then-optimise on identical cross-fitting folds ($5\times5$).}
+\label{fig:pl}
+\end{figure}
+
+\subsection{Chance constraints meet the optimiser's curse}
+Under random voucher uptake, the mean-budget policy overruns its budget in 63--85\% of campaigns
+and the chance-constrained policy in 14--32\% (Figure~\ref{fig:chance}), at an 8--18\% loss of profit,
+missing the 5\% target it believes it meets. The cause is selection, not the normal approximation:
+estimated uptake is calibrated overall (0.012 vs.\ 0.012) but about 10\% too low among the customers
+the allocator selects (0.026 vs.\ 0.028--0.029). Customers who look cheap are partly cheap by
+estimation error, an instance of the optimiser's curse \citep{smith2006}. Because the safety margin
+scales with $\sqrt{B}$ while the bias scales with $B$, the miss grows with the budget.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/chance_constraint.png}
+\caption{Overrun probability (true uptake) and true profit, positive control, 15 campaigns.}
+\label{fig:chance}
+\end{figure}
+
+\subsection{Learning while spending}
+In the sequential setting (Table~\ref{tab:seq}, Figure~\ref{fig:seq}) the bandit earns 68\% of the
+oracle's profit when effects are heterogeneous, against 47--60\% for experiment-then-target. It beats
+$k=1$ by \$0.027 \CI{0.001}{0.054} and $k=4$ by \$0.054 \CI{0.046}{0.062} per customer; against the best
+one-shot design ($k=2$) the gain, \$0.021 \CI{-0.002}{0.043}, is not significant. Its main advantage
+is robustness, an interval four times narrower than $k=1$'s, because a one-shot model is
+occasionally badly wrong for the rest of the campaign. Larger experiments are not safer: $k=4$ is the
+worst targeted design. With homogeneous effects the bandit is indistinguishable from $k\in\{1,2\}$,
+so adaptivity costs nothing when there is nothing to learn.
+
+\begin{table}[t]
+\centering\small
+\caption{Total true profit per customer over a 64{,}000-customer campaign (95\% CI, 20 replications).}
+\label{tab:seq}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrr}
+\toprule
+Policy & Heterogeneous & Homogeneous \\
+\midrule
+Oracle (true $\tau$)         & $0.263$ & $0.070$ \\
+Thompson bandit              & $\mathbf{0.178}$ \CI{.172}{.184} & $0.054$ \CI{.050}{.058} \\
+Exp.-then-target, $k=1$      & $0.150$ \CI{.123}{.177} & $0.052$ \CI{.041}{.064} \\
+Exp.-then-target, $k=2$      & $0.157$ \CI{.135}{.179} & $0.050$ \CI{.044}{.056} \\
+Exp.-then-target, $k=4$      & $0.124$ \CI{.117}{.131} & $0.045$ \CI{.045}{.045} \\
+Random targeting             & $0.025$ & $0.025$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/sequential.png}
+\caption{Cumulative true profit per campaign customer over 16 batches (95\% CI over replications).}
+\label{fig:seq}
+\end{figure*}
+
+\subsection{Further checks}
+A deliberately confounded sample (treated customers retained with probability rising in
+\texttt{history}) biases the naive visit effect by $+1.8$\,pp; IPW with an estimated propensity and
+AIPW recover the RCT value within $0.2$\,pp. Allocating on a lower confidence bound of $\tauh$
+lowers both mean and 5th-percentile policy value at every budget. Adding sentence-embedding
+features \citep{reimers2019} of a one-sentence customer description changes Qini by $+0.019$
+\CI{-0.042}{0.081} and $-0.022$ \CI{-0.052}{0.010}: the text restates the tabular covariates.
+
+% =========================================================================================
+\section{Discussion and limitations}
+\label{sec:discussion}
+
+The central finding is a carefully qualified negative. On Hillstrom, two-week spend carries no
+heterogeneity large enough to detect with 64{,}000 customers, and simple rules are as good as any
+targeted policy; a positive control shows that this is a property of the data rather than of the
+method, and the sweep shows that the null is compatible with economically relevant heterogeneity.
+For practitioners this suggests three habits: evaluate targeted policies against the best single
+arm, not only against random targeting; size experiments for \emph{policy} differences, which are
+much harder to detect than average effects; and distrust plug-in constraints built on the same
+model that selected the customers.
+
+\paragraph{Limitations.}
+SUTVA is assumed throughout (no household spill-over or cannibalisation). Outcomes cover two weeks
+after a single 2008 campaign, with no long-run effects, fatigue or unsubscribes. Costs, margin
+and voucher value are assumptions. The positive control is only as realistic as its generator:
+additive effects, a simple segment rule on observed covariates, and amounts independent of $X$.
+Learners and LightGBM parameters were fixed from v1.0 in later releases. Several comparisons across
+budgets and outcomes are reported without multiplicity correction. A scale check on the Criteo
+uplift data \citep{diemert2018} was planned but not run because all known download locations were
+unavailable.
+
+\paragraph{Reproducibility.}
+Code, frozen configurations, the decision log and all results are available at \repourl. A single
+command reproduces every table and figure; a fresh-clone run reproduced all 32 result tables
+bit-for-bit (largest numeric difference $2\times10^{-16}$), and 120 unit tests check every estimator
+against simulated data with a known effect.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
