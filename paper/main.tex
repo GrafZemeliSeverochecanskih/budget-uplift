@@ -61,8 +61,9 @@ concentrated in a third of customers. We further show that (i) repeated cross-fi
 policy-value intervals by 37--58\% while accounting for model-refit variance; (ii) a profit
 objective selects its own budget and recovers the known optimum; (iii) doubly robust policy trees
 never outperform estimate-then-optimise; (iv) plug-in chance constraints on random voucher uptake
-are defeated by the optimiser's curse; and (v) a budgeted Thompson-sampling bandit beats or ties
-every experiment-then-target design. All code, configurations and results are public and
+are defeated by the optimiser's curse, which a recalibration estimated from the same experiment
+cannot repair, whereas a conservative bootstrap bound holds the target at a 16--19\% profit cost;
+and (v) a budgeted Thompson-sampling bandit beats or ties every experiment-then-target design. All code, configurations and results are public and
 reproduce bit-for-bit from a fresh clone.
 \end{abstract}
 \vspace{1.2em}
@@ -179,7 +180,7 @@ e-mailing every customer at the average e-mail cost, $B = f\cdot n\cdot \bar c$ 
 $\bar c=\$0.09$.
 
 \paragraph{Release protocol.}
-The study was carried out as five releases (v1.0--v1.4). For each, the configuration was committed
+The study was carried out as six releases (v1.0--v1.5). For each, the configuration was committed
 before any code that uses it was written, and changes made after seeing results are logged with a
 reason (five such changes in total, e.g.\ a replacement of a single random draw by a permutation null
 as the random baseline). The complete history, configuration and a decision log are public
@@ -344,6 +345,16 @@ requires $\E[C]\le B$; the chance-constrained policy \citep{charnes1959} require
 \end{equation}
 with $\varepsilon=0.05$, solved by bisection on an effective budget, using estimated $\hat p$. On
 the positive control, where the true $p$ is known, overruns are counted by Monte Carlo.
+
+Two corrections for selection bias in $\hat p$ were pre-registered in v1.5. \emph{Recalibration}
+splits each training fold, lets the allocator select customers on one half and estimates
+\begin{equation}
+  \hat\kappa = \max\!\Big(1,\ \frac{\sum_{i\in\mathcal S} \ind[T_i=a_i]\,\text{Conv}_i/e(a_i)}
+  {\sum_{i\in\mathcal S}\hat p_{i a_i}}\Big),
+\end{equation}
+the ratio of IPW-estimated to predicted purchases among the selected set $\mathcal S$, then plans
+with $\hat\kappa\,\hat p$. The \emph{bootstrap bound} refits $\hat p$ on 20 bootstrap resamples and
+plans with the per-customer 90\% quantile.
 
 \subsection{Sequential allocation}
 In v1.4 a campaign of 64{,}000 customers arrives in 16 batches of 4{,}000, outcomes of a batch are
@@ -544,6 +555,41 @@ scales with $\sqrt{B}$ while the bias scales with $B$, the miss grows with the b
 \label{fig:chance}
 \end{figure}
 
+\subsection{Repairing the curse}
+Table~\ref{tab:chance15} and Figure~\ref{fig:chance15} compare both v1.5 corrections with the
+plug-in constraint on the same 15 campaigns. Recalibration barely helps: $\hat\kappa$ comes out at
+about 1 (raw 0.98--1.02) while the true ratio among selected customers is 1.08--1.12, because a
+10\% bias is below what IPW on a few hundred matched purchases can resolve. The bootstrap bound
+holds the target with room to spare (overrun at most 0.8\%) but gives up 16--19\% of profit.
+With rare uptake, safety is bought by caution rather than calibration. On real Hillstrom the raw
+ratio is 0.78--0.80, so the floor binds and all four policies earn indistinguishable profit.
+
+\begin{table}[t]
+\centering\small
+\caption{True overrun probability on the positive control (95\% CI, 15 campaigns) and true profit
+per customer for the plug-in constraint vs.\ the bootstrap bound.}
+\label{tab:chance15}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrrr}
+\toprule
+Budget & Plug-in & Recalibrated & Bootstrap & Profit \\
+\midrule
+0.02 & $0.14$ \CI{.08}{.20} & $0.11$ \CI{.05}{.17} & $0.008$ & $0.032\to0.026$ \\
+0.04 & $0.22$ \CI{.14}{.30} & $0.19$ \CI{.11}{.27} & $0.003$ & $0.071\to0.058$ \\
+0.06 & $0.29$ \CI{.21}{.36} & $0.21$ \CI{.12}{.30} & $0.001$ & $0.112\to0.092$ \\
+0.08 & $0.32$ \CI{.25}{.40} & $0.24$ \CI{.15}{.34} & $0.000$ & $0.150\to0.126$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/chance15.png}
+\caption{v1.5: overrun probability and true profit for the plug-in, recalibrated and
+bootstrap-bound chance constraints (positive control).}
+\label{fig:chance15}
+\end{figure}
+
 \subsection{Learning while spending}
 In the sequential setting (Table~\ref{tab:seq}, Figure~\ref{fig:seq}) the bandit earns 68\% of the
 oracle's profit when effects are heterogeneous, against 47--60\% for experiment-then-target. It beats
@@ -599,7 +645,8 @@ method, and the sweep shows that the null is compatible with economically releva
 For practitioners this suggests three habits: evaluate targeted policies against the best single
 arm, not only against random targeting; size experiments for \emph{policy} differences, which are
 much harder to detect than average effects; and distrust plug-in constraints built on the same
-model that selected the customers.
+model that selected the customers, and prefer a conservative bound to a data-driven correction when
+uptake is rare.
 
 \paragraph{Limitations.}
 SUTVA is assumed throughout (no household spill-over or cannibalisation). Outcomes cover two weeks
@@ -613,9 +660,9 @@ unavailable.
 
 \paragraph{Reproducibility.}
 Code, frozen configurations, the decision log and all results are available at \repourl. A single
-command reproduces every table and figure; a fresh-clone run reproduced all 32 result tables
-bit-for-bit (largest numeric difference $2\times10^{-16}$), and 120 unit tests check every estimator
-against simulated data with a known effect.
+command reproduces every table and figure; a fresh-clone run reproduced every result table
+bit-for-bit (largest numeric difference $2\times10^{-16}$, wall-clock timings excluded), and 125 unit
+tests check every estimator against simulated data with a known effect.
 
 \bibliographystyle{plainnat}
 \bibliography{references}

@@ -111,3 +111,10 @@ test-set results, with its date and reason. Config values live in `config/config
   `make all` 61 min on 16 cores (every release, v1.0–v1.4). The data hash matched `data/DATA_VERSION.txt`.
 - All 32 result tables and the learned policy-tree text are identical to the committed ones
   (largest numeric difference 2e-16; solver wall-clock columns excluded).
+
+## Regeneration after v1.5 (2026-10-10)
+
+- `make all` on `main` at tag `v1.5` (exit 0, 125 tests pass) regenerated every result. Apart from wall-clock
+  timing columns and 2e-16 float noise, the only change is the column order of `chance_campaigns.csv`
+  (`n_targeted` and `effective_budget_share` swapped by the v1.5 refactor of `chance.py`); every value is
+  identical, so the refactor changed no logic. The paper now covers v1.0–v1.5.
