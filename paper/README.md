@@ -1,6 +1,6 @@
 # Paper
 
-Two-column LaTeX write-up of releases v1.0–v1.5.
+Two-column LaTeX write-up of releases v1.0 to v1.5.
 
 - `main.tex`: the paper (pdfLaTeX + BibTeX; `article`, two columns, `natbib`/`plainnat`).
 - `references.bib`: bibliography.

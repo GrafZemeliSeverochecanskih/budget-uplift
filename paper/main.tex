@@ -56,13 +56,13 @@ at any budget. A semi-synthetic positive control on the same covariates and assi
 the same code recovers a known effect (correlation of estimated and true effects up to $0.83$;
 $+\$0.50$ $\CI{0.27}{0.75}$ per customer over random targeting at a 30\% budget). A sweep over
 effect heterogeneity and sample size shows why: at Hillstrom's size a single experiment detects a
-real gain over the best single arm in only 5--25\% of replications unless most of the effect is
+real gain over the best single arm in only 5 to 25\% of replications unless most of the effect is
 concentrated in a third of customers. We further show that (i) repeated cross-fitting narrows
-policy-value intervals by 37--58\% while accounting for model-refit variance; (ii) a profit
+policy-value intervals by 37 to 58\% while accounting for model-refit variance; (ii) a profit
 objective selects its own budget and recovers the known optimum; (iii) doubly robust policy trees
 never outperform estimate-then-optimise; (iv) plug-in chance constraints on random voucher uptake
 are defeated by the optimiser's curse, which a recalibration estimated from the same experiment
-cannot repair, whereas a conservative bootstrap bound holds the target at a 16--19\% profit cost;
+cannot repair, whereas a conservative bootstrap bound holds the target at a 16 to 19\% profit cost;
 and (v) a budgeted Thompson-sampling bandit beats or ties every experiment-then-target design. All code, configurations and results are public and
 reproduce bit-for-bit from a fresh clone.
 \end{abstract}
@@ -180,7 +180,7 @@ e-mailing every customer at the average e-mail cost, $B = f\cdot n\cdot \bar c$ 
 $\bar c=\$0.09$.
 
 \paragraph{Release protocol.}
-The study was carried out as six releases (v1.0--v1.5). For each, the configuration was committed
+The study was carried out as six releases (v1.0 to v1.5). For each, the configuration was committed
 before any code that uses it was written, and changes made after seeing results are logged with a
 reason (five such changes in total, e.g.\ a replacement of a single random draw by a permutation null
 as the random baseline). The complete history, configuration and a decision log are public
@@ -373,8 +373,8 @@ outcome draws, and each is scored by the known expected profit of its assignment
 Both e-mails raise every outcome (Table~\ref{tab:ate}). Regression adjustment narrows the spend
 interval by only 0.1\% (visit: 1.5\%), because pre-period covariates explain almost none of
 two-week spend. Detecting the observed spend effect at 80\% power needs 5{,}953 customers per arm
-for Mens but 15{,}808 for Womens (range 6{,}160--99{,}739 over the effect's interval); the minimum
-detectable spend effect with the available $\approx$21{,}300 per arm is \$0.37--0.41.
+for Mens but 15{,}808 for Womens (range 6{,}160 to 99{,}739 over the effect's interval); the minimum
+detectable spend effect with the available $\approx$21{,}300 per arm is \$0.37 to 0.41.
 
 \begin{table}[t]
 \centering\small
@@ -455,11 +455,11 @@ with the same covariates, assignment and code; $\times$ marks the known true val
 On the positive control the unchanged pipeline finds the effect (Table~\ref{tab:pc},
 Figure~\ref{fig:headline}, right). For the Womens arm all five learners beat the permutation null
 ($p\le0.022$) with Qini values indistinguishable from an oracle that ranks by the true $\tau$, and
-estimated effects correlate with the truth at $0.62$--$0.83$ (spend) and $0.90$--$0.96$ (visit).
+estimated effects correlate with the truth at $0.62$ to $0.83$ (spend) and $0.90$ to $0.96$ (visit).
 For the Mens arm the true effect is constant, so every learner \emph{and} the oracle have Qini near
 zero, as they should. The targeted policy beats random targeting at 8 of 10 budgets for spend
 ($+\$0.50$ \CI{0.27}{0.75} at $f=0.3$) and at all budgets for visit, and its known true value is
-90--98\% of the oracle's. DR intervals cover the true policy value in 73 of 80 cases; the seven
+90 to 98\% of the oracle's. DR intervals cover the true policy value in 73 of 80 cases; the seven
 misses are visit, concentrated on nearly identical policies, and reflect one test draw about two
 standard errors high.
 
@@ -488,7 +488,7 @@ which isolates the value of heterogeneity, targeting truly pays from $h=0.25$ wh
 $h=0$ it earns nothing ($-\$0.007$ \CI{-0.013}{0.000}). Detection, however, lags far behind: at
 Hillstrom's size a single experiment's DR interval excludes zero in only 5\%, 25\%, 85\% and 95\%
 of replications for $h=0.25,0.5,0.75,1$. Between ``targeting would earn more'' and ``one can show
-that it does'' lies a band in which the policy is worth \$0.04--0.23 per customer yet looks like
+that it does'' lies a band in which the policy is worth \$0.04 to 0.23 per customer yet looks like
 noise. The Hillstrom null is therefore weak evidence \emph{against} heterogeneity, all the more
 because Hillstrom's real Womens effect (\$0.42) is less than half the simulated average (\$0.96).
 
@@ -510,7 +510,7 @@ Hillstrom no policy separates from any other (0 of 33 paired comparisons), and t
 estimate is again the simplest rule, Mens e-mail to everyone (\$0.130 \CI{0.045}{0.215}). Whether
 e-mailing pays at all hinges on the assumed margin.
 
-Repeated cross-fitting \eqref{eq:dml} narrows policy-value intervals by 37--58\% relative to the
+Repeated cross-fitting \eqref{eq:dml} narrows policy-value intervals by 37 to 58\% relative to the
 test split, while now including refit variance, and its intervals cover the known true profit in 142
 of 143 positive-control cases. With it, the real data do establish that e-mailing pays
 ($+\$0.65$ \CI{0.37}{0.93} revenue per customer at $f=1$, where the test split gave
@@ -540,11 +540,11 @@ e-mail whole leaves, so it cannot fill a budget smaller than its leaves.
 \end{figure}
 
 \subsection{Chance constraints meet the optimiser's curse}
-Under random voucher uptake, the mean-budget policy overruns its budget in 63--85\% of campaigns
-and the chance-constrained policy in 14--32\% (Figure~\ref{fig:chance}), at an 8--18\% loss of profit,
+Under random voucher uptake, the mean-budget policy overruns its budget in 63 to 85\% of campaigns
+and the chance-constrained policy in 14 to 32\% (Figure~\ref{fig:chance}), at an 8 to 18\% loss of profit,
 missing the 5\% target it believes it meets. The cause is selection, not the normal approximation:
 estimated uptake is calibrated overall (0.012 vs.\ 0.012) but about 10\% too low among the customers
-the allocator selects (0.026 vs.\ 0.028--0.029). Customers who look cheap are partly cheap by
+the allocator selects (0.026 vs.\ 0.028 to 0.029). Customers who look cheap are partly cheap by
 estimation error, an instance of the optimiser's curse \citep{smith2006}. Because the safety margin
 scales with $\sqrt{B}$ while the bias scales with $B$, the miss grows with the budget.
 
@@ -558,11 +558,11 @@ scales with $\sqrt{B}$ while the bias scales with $B$, the miss grows with the b
 \subsection{Repairing the curse}
 Table~\ref{tab:chance15} and Figure~\ref{fig:chance15} compare both v1.5 corrections with the
 plug-in constraint on the same 15 campaigns. Recalibration barely helps: $\hat\kappa$ comes out at
-about 1 (raw 0.98--1.02) while the true ratio among selected customers is 1.08--1.12, because a
+about 1 (raw 0.98 to 1.02) while the true ratio among selected customers is 1.08 to 1.12, because a
 10\% bias is below what IPW on a few hundred matched purchases can resolve. The bootstrap bound
-holds the target with room to spare (overrun at most 0.8\%) but gives up 16--19\% of profit.
+holds the target with room to spare (overrun at most 0.8\%) but gives up 16 to 19\% of profit.
 With rare uptake, safety is bought by caution rather than calibration. On real Hillstrom the raw
-ratio is 0.78--0.80, so the floor binds and all four policies earn indistinguishable profit.
+ratio is 0.78 to 0.80, so the floor binds and all four policies earn indistinguishable profit.
 
 \begin{table}[t]
 \centering\small
@@ -592,7 +592,7 @@ bootstrap-bound chance constraints (positive control).}
 
 \subsection{Learning while spending}
 In the sequential setting (Table~\ref{tab:seq}, Figure~\ref{fig:seq}) the bandit earns 68\% of the
-oracle's profit when effects are heterogeneous, against 47--60\% for experiment-then-target. It beats
+oracle's profit when effects are heterogeneous, against 47 to 60\% for experiment-then-target. It beats
 $k=1$ by \$0.027 \CI{0.001}{0.054} and $k=4$ by \$0.054 \CI{0.046}{0.062} per customer; against the best
 one-shot design ($k=2$) the gain, \$0.021 \CI{-0.002}{0.043}, is not significant. Its main advantage
 is robustness, an interval four times narrower than $k=1$'s, because a one-shot model is
