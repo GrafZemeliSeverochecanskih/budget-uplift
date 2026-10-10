@@ -1,7 +1,7 @@
 # On Windows without GNU make, use `mingw32-make` or run the commands directly.
 PYTHON ?= python
 
-.PHONY: install data test all quick sweep sweep-quick profit profit-quick policy policy-quick sequential sequential-quick clean
+.PHONY: install data test all quick sweep sweep-quick profit profit-quick policy policy-quick sequential sequential-quick chance15 chance15-quick clean
 
 install:
 	$(PYTHON) -m pip install -e ".[dev,llm]"
@@ -46,6 +46,13 @@ sequential: data
 
 sequential-quick: data
 	$(PYTHON) -m uplift_alloc.run_all --quick --only sequential
+
+# v1.5 selection-aware chance constraint (also part of `make all`).
+chance15: data
+	$(PYTHON) -m uplift_alloc.run_all --only chance15
+
+chance15-quick: data
+	$(PYTHON) -m uplift_alloc.run_all --quick --only chance15
 
 clean:
 	rm -rf results/figures/*.png results/tables/*.csv results/quick

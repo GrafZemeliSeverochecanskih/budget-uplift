@@ -11,6 +11,7 @@ is logged with a reason in [DECISIONS.md](DECISIONS.md).
 | [v1.2](#v12--profit-objective) | What if we maximise profit and pick the budget? | The profit objective finds its own budget (known optimum recovered); real data: e-mailing pays, targeting does not. Cross-fitting narrows intervals by 37–58%. |
 | [v1.3](#v13--direct-policy-learning-and-a-chance-constrained-budget) | Policy learning? Random uptake? | Policy trees never beat estimate-then-optimise. Chance constraints cut overruns but miss their target because of the winner's curse. |
 | [v1.4](#v14--sequential-allocation-bandit-vs-experiment-then-target) | Learn while spending? | A Thompson-sampling bandit beats or ties every experiment-then-target design, and costs nothing when there is nothing to learn. |
+| [v1.5](#v15--selection-aware-chance-constraint) | Can the chance constraint be repaired? | Recalibrating uptake on held-out selected customers barely helps; a bootstrap-upper uptake bound meets the 5% target with room to spare, at 16–19% of profit. |
 
 **Question.** A retailer can afford to e-mail only some customers, and has two e-mails (Mens, Womens)
 of different cost. Can heterogeneous treatment effects estimated from a randomised experiment pick
@@ -462,6 +463,54 @@ Limitations specific to v1.4:
 - Budget pacing is even, the same for all policies; adaptive pacing could help every policy.
 - Only one bandit algorithm and one learner were tried; ε and the bootstrap are untuned.
 
+## v1.5 — selection-aware chance constraint
+
+**Question.** v1.3 found that the plug-in chance constraint believes its overrun probability is 5%
+while the true value is 14–32%: estimated uptake is too low among exactly the customers the
+allocator selects (winner's curse). Can that be corrected using the training data only?
+
+**Design** (frozen in config before any v1.5 code ran; DECISIONS K1–K4). Same scenario, budgets,
+ε = 0.05, folds and campaigns as v1.3b; only the uptake estimate p̂ used by the constraint changes.
+- **A, recalibrated uptake:** inside each training fold, fit the models on one half, let the
+  allocator select customers on the other half, and compare their IPW purchases (known propensity
+  1/3) with Σ p̂ over the same customers. The ratio κ (floored at 1) then scales p̂ in the campaign.
+- **B, bootstrap-upper uptake:** refit p̂ on 20 bootstrap resamples and plan the constraint's mean
+  and variance with the per-customer 90% quantile.
+- **Pre-registered success criterion:** an overrun interval that contains or lies below 0.05.
+
+![Chance constraint v1.5](results/figures/chance15.png)
+
+| Budget ($/customer) | P(overrun): plug-in (v1.3) | A: recalibrated | B: bootstrap-upper | True profit: plug-in → B |
+|---:|---:|---:|---:|---:|
+| 0.02 | 0.14 [0.08, 0.20] | 0.11 [0.05, 0.17] | 0.008 [0.001, 0.014] | $0.032 → $0.026 |
+| 0.04 | 0.22 [0.14, 0.30] | 0.19 [0.11, 0.27] | 0.003 [0.001, 0.006] | $0.071 → $0.058 |
+| 0.06 | 0.29 [0.21, 0.36] | 0.21 [0.12, 0.30] | 0.001 [0.000, 0.002] | $0.112 → $0.092 |
+| 0.08 | 0.32 [0.25, 0.40] | 0.24 [0.15, 0.34] | 0.000 [0.000, 0.001] | $0.150 → $0.126 |
+
+Positive control, 15 cross-fitted campaigns of about 12,800 customers each, overruns checked
+against the true uptake probabilities; 95% t-intervals.
+
+- **A does not meet the criterion.** It lowers overruns by only 3–8 points, with intervals that
+  overlap the plug-in ones. The reason is that κ itself comes out at about 1: its raw value is
+  0.98–1.02 (1.03–1.06 after the floor), while the true ratio among the campaign's selected
+  customers is about 1.08–1.12. A bias of about 10% is below what IPW on a few hundred matched
+  purchases can resolve; the unit tests show that A works once the calibration sample is large
+  enough.
+- **B meets it, with room to spare.** True overrun is at most 0.8%, at a cost of 16–19% of profit
+  against the plug-in constraint. That is safety bought by caution rather than calibration: it
+  overshoots the 5% target by a wide margin.
+- **Real Hillstrom (plug-in only).** κ is 1.00–1.04; the raw ratio is 0.78–0.80, so in real data the
+  selected customers' measured purchases come out *below* p̂ and the floor binds. Estimated profit
+  is indistinguishable across the four policies.
+- **Takeaway.** With rare uptake, a bias correction estimated from the same experiment is too noisy
+  to target ε precisely. A conservative uptake bound is the reliable option, but tuning its quantile
+  to hit ε exactly would need a larger calibration sample or an explicit model of the selection.
+
+Limitations specific to v1.5:
+- κ is estimated once per budget and fold, from mean-budget selections on half the training data.
+- B's 90% quantile is a single pre-registered choice, not tuned.
+- Both corrections are verified only in the semi-synthetic setting.
+
 ## Limitations
 
 - **SUTVA.** E-mails are assumed not to affect other customers (no household spill-over, no
@@ -502,6 +551,8 @@ make policy      # v1.3 policy learning + chance constraint (~3 min; also in mak
 make policy-quick # reduced folds/grid/draws, into results/quick/ (~1.5 min)
 make sequential  # v1.4 bandit vs experiment-then-target (~1 min; also in make all)
 make sequential-quick # 16k customers, 3 replications, into results/quick/ (seconds)
+make chance15    # v1.5 selection-aware chance constraint (~5 min; also in make all)
+make chance15-quick # reduced folds and refits, into results/quick/ (~3 min)
 make test        # pytest: every estimator tested on simulated data with a known effect
 ```
 
@@ -516,12 +567,13 @@ reuse cached predictions and embeddings.
 config/config.yaml         all analysis choices (fixed before test results; later changes in DECISIONS.md)
 src/uplift_alloc/          library: data, rct, cate, metrics, allocate, ope, positive_control,
                            confounding, robust_allocate, llm_features, sweep, profit, policy_learning,
-                           chance, sequential, run_all, plotting, config
+                           chance, sequential, chance15, run_all, plotting, config
 scripts/download_data.py   fetch + validate + hash + split + DATA_CARD.md
 tests/                     pytest suite (simulated ground truth for every estimator)
 results/{figures,tables}/  generated outputs (pc_* = positive control, sweep_* = v1.1, profit_* = v1.2,
                            policylearn_* / chance_* = v1.3,
-                           sequential_* = v1.4)
+                           sequential_* = v1.4,
+                           chance15_* = v1.5)
 DATA_CARD.md  DECISIONS.md  ROADMAP.md  TODO.md  PROJECT.md
 ```
 

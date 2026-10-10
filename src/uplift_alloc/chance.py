@@ -124,7 +124,6 @@ def chance_arrays(name: str, cfg: dict) -> dict[str, Any]:
 def crossfit_repeat(d: dict[str, Any], learner: str, cfg: dict, repeat: int) -> list[dict[str, Any]]:
     """Mean-budget vs chance-constrained policies on every held-out fold (one campaign per fold)."""
     from .cate import TLearner, make_learner
-    from .ope import dr_scores, nobody_policy, one_hot
 
     ch, params = cfg["chance"], cfg["profit"]["lgbm_params"]
     cost, v, m, eps = arm_costs(cfg), ch["voucher_value"], ch["margin"], ch["epsilon"]
@@ -140,36 +139,58 @@ def crossfit_repeat(d: dict[str, Any], learner: str, cfg: dict, repeat: int) -> 
         S = m * tau_hat - cost[1:] - v * p_hat[:, 1:]
         C = cost[1:] + v * p_hat[:, 1:]
         V = v**2 * p_hat[:, 1:] * (1 - p_hat[:, 1:])
-        base = dr_scores(nobody_policy(len(te)), t[te], spend[te], mu_spend)
+        ctx = campaign_context(d, te, t, spend, conv, mu_spend, p_hat, cfg, rng)
         for b_pc in ch["budget_per_customer"]:
             budget = b_pc * len(te)
             mean_assign = allocate_rowcost(S, C, budget)
             chance_assign, eff = chance_allocate(S, C, V, budget, eps)
-            for name, assign in (("Mean budget", mean_assign), (f"Chance-constrained (ε={eps:g})", chance_assign)):
-                pi = one_hot(assign)
-                treated = pi.copy()
-                treated[:, 0] = 0.0
-                rev = dr_scores(pi, t[te], spend[te], mu_spend) - base
-                voucher = v * dr_scores(treated, t[te], conv[te], p_hat)
-                mean_c, sd_c = cost_moments(assign, C, V)
-                row = {"repeat": repeat, "fold": f, "policy": name, "budget_per_customer": b_pc,
-                       "n_targeted": int((assign > 0).sum()), "effective_budget_share": eff / budget if "Chance" in name else 1.0,
-                       "est_profit": float((m * rev - pi @ cost - voucher).mean()),
-                       "plugin_violation": float(stats.norm.sf((budget - mean_c) / sd_c)) if sd_c > 0 else float(mean_c > budget)}
-                if d["p"] is not None:
-                    p_te, tau_te = d["p"][te], d["tau"][te]
-                    true_s = m * tau_te - cost[1:] - v * p_te[:, 1:]
-                    sel = np.flatnonzero(assign > 0)
-                    row["true_profit"] = float(true_s[sel, assign[sel] - 1].sum() / len(te))
-                    row["true_violation"] = violation_mc(assign, cost, p_te, v, budget, ch["uptake_draws"], rng)
-                    row["true_expected_cost_share"] = float((cost[assign[sel]].sum() + v * p_te[sel, assign[sel]].sum()) / budget)
-                    # diagnostic: is uptake under-estimated for the customers the allocator picked?
-                    row["p_hat_selected"] = float(p_hat[sel, assign[sel]].mean()) if len(sel) else np.nan
-                    row["p_true_selected"] = float(p_te[sel, assign[sel]].mean()) if len(sel) else np.nan
-                    row["p_hat_all"] = float(p_hat[:, 1:].mean())
-                    row["p_true_all"] = float(p_te[:, 1:].mean())
-                rows.append(row)
+            for name, assign, share in (("Mean budget", mean_assign, 1.0),
+                                        (f"Chance-constrained (ε={eps:g})", chance_assign, eff / budget)):
+                rows.append({"repeat": repeat, "fold": f, "policy": name, "budget_per_customer": b_pc,
+                             "effective_budget_share": share, **campaign_row(assign, C, V, budget, ctx)})
     return rows
+
+
+def campaign_context(d: dict[str, Any], te: np.ndarray, t: np.ndarray, spend: np.ndarray, conv: np.ndarray,
+                     mu_spend: np.ndarray, p_hat: np.ndarray, cfg: dict, rng: np.random.Generator) -> dict[str, Any]:
+    """Everything needed to score any policy on one held-out campaign (shared by v1.3b and v1.5)."""
+    from .ope import dr_scores, nobody_policy
+
+    ch = cfg["chance"]
+    return {"t": t[te], "spend": spend[te], "conv": conv[te], "mu_spend": mu_spend, "p_hat": p_hat,
+            "base": dr_scores(nobody_policy(len(te)), t[te], spend[te], mu_spend),
+            "cost": arm_costs(cfg), "v": ch["voucher_value"], "m": ch["margin"], "draws": ch["uptake_draws"],
+            "p_true": None if d["p"] is None else d["p"][te], "tau_true": None if d["tau"] is None else d["tau"][te],
+            "rng": rng, "n": len(te)}
+
+
+def campaign_row(assign: np.ndarray, C: np.ndarray, V: np.ndarray, budget: float, ctx: dict[str, Any]) -> dict[str, Any]:
+    """DR-estimated profit, plug-in overrun (from the C, V the policy planned with) and, if known, the truth."""
+    from .ope import dr_scores, one_hot
+
+    cost, v, m = ctx["cost"], ctx["v"], ctx["m"]
+    pi = one_hot(assign)
+    treated = pi.copy()
+    treated[:, 0] = 0.0
+    rev = dr_scores(pi, ctx["t"], ctx["spend"], ctx["mu_spend"]) - ctx["base"]
+    voucher = v * dr_scores(treated, ctx["t"], ctx["conv"], ctx["p_hat"])
+    mean_c, sd_c = cost_moments(assign, C, V)
+    row = {"n_targeted": int((assign > 0).sum()),
+           "est_profit": float((m * rev - pi @ cost - voucher).mean()),
+           "plugin_violation": float(stats.norm.sf((budget - mean_c) / sd_c)) if sd_c > 0 else float(mean_c > budget)}
+    if ctx["p_true"] is not None:
+        p_te, tau_te, p_hat = ctx["p_true"], ctx["tau_true"], ctx["p_hat"]
+        true_s = m * tau_te - cost[1:] - v * p_te[:, 1:]
+        sel = np.flatnonzero(assign > 0)
+        row["true_profit"] = float(true_s[sel, assign[sel] - 1].sum() / ctx["n"])
+        row["true_violation"] = violation_mc(assign, cost, p_te, v, budget, ctx["draws"], ctx["rng"])
+        row["true_expected_cost_share"] = float((cost[assign[sel]].sum() + v * p_te[sel, assign[sel]].sum()) / budget)
+        # diagnostic: is uptake under-estimated for the customers the allocator picked?
+        row["p_hat_selected"] = float(p_hat[sel, assign[sel]].mean()) if len(sel) else np.nan
+        row["p_true_selected"] = float(p_te[sel, assign[sel]].mean()) if len(sel) else np.nan
+        row["p_hat_all"] = float(p_hat[:, 1:].mean())
+        row["p_true_all"] = float(p_te[:, 1:].mean())
+    return row
 
 
 def summarise(rows: pd.DataFrame, alpha: float) -> pd.DataFrame:
