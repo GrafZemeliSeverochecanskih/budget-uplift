@@ -81,7 +81,7 @@ class TLearner:
 
 
 class XLearner:
-    """Künzel et al. X-learner, one pairwise (arm a vs control) problem per arm.
+    """Kunzel et al. X-learner, one pairwise (arm a vs control) problem per arm.
 
     Imputed effects D1 = Y - mu_0(X) on arm-a units and D0 = mu_a(X) - Y on controls are each
     regressed on X and blended with the known within-pair propensity g = P(a | a or 0) = 1/2.
@@ -264,7 +264,7 @@ def plot_qini(preds: dict[str, np.ndarray], t: np.ndarray, y: np.ndarray, outcom
         ax.set_xlabel("Fraction of customers targeted (by predicted uplift)")
         ax.set_ylabel(f"Incremental {outcome} per customer (Qini)")
     axes[0].legend(loc="upper left")
-    fig.suptitle(f"Qini curves on the test split — outcome: {outcome}", x=0.01, ha="left",
+    fig.suptitle(f"Qini curves on the test split - outcome: {outcome}", x=0.01, ha="left",
                  fontsize=11, fontweight="bold")
     fig.text(0.01, -0.03, "Curve above the dashed diagonal = better than random targeting; grey band = 95% of random orderings.", color=TEXT_2, fontsize=8)
     fig.tight_layout()
@@ -322,7 +322,7 @@ def run_outcomes(train, test, outcomes: list[str], tag: str = "",
         selection_tables.append(sel_table.assign(outcome=outcome, selected=lambda d: d.learner == selected))
         preds, times = fit_predict(LEARNERS, params, seed, Xtr_np, ttr, ytr, Xte_np)
         np.savez(CACHE_DIR / f"{tag}cate_test_{outcome}.npz", **preds)
-        scored = {**preds, **({"Oracle (true τ)": oracle[outcome]} if oracle else {})}
+        scored = {**preds, **({"Oracle (true tau)": oracle[outcome]} if oracle else {})}
         table = evaluate(scored, tte, yte, reps, seed, alpha)
         table["fit_seconds"] = table["learner"].map(times)
         table.insert(0, "outcome", outcome)

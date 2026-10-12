@@ -112,11 +112,11 @@ def plot_tau_recovery(preds: dict[str, np.ndarray], tau: np.ndarray, seg: np.nda
         for k, (g, s_) in enumerate(zip(groups, (~seg, seg)), 1):
             truth = tau[s_, a - 1].mean()
             ax.plot([k - 0.4, k + 0.4], [truth, truth], color=TEXT_2, lw=2, ls="--",
-                    label="true τ" if k == 1 else "_nolegend_")
+                    label="true tau" if k == 1 else "_nolegend_")
             ax.plot(k, np.median(g), "o", color="white", markeredgecolor=TEXT_2, markersize=6,
-                    label="median τ̂" if k == 1 else "_nolegend_")
+                    label="median tau-hat" if k == 1 else "_nolegend_")
         ax.set_xticks([1, 2], ["outside segment", "in segment"])
-        ax.set_title(f"{ARM_NAMES[a]}: τ̂ for spend ({learner}-learner)", loc="left", fontsize=10)
+        ax.set_title(f"{ARM_NAMES[a]}: tau-hat for spend ({learner}-learner)", loc="left", fontsize=10)
     axes[0].set_ylabel("Predicted incremental spend ($)")
     axes[0].legend(loc="upper left")
     fig.text(0.01, -0.03, "Segment: womens == 1 and recency <= 6. Womens e-mail truly helps only inside it.",

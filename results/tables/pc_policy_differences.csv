@@ -1,89 +1,89 @@
 estimator,policy,incremental,incremental_ci_low,incremental_ci_high,budget_fraction,outcome
-dr,Uplift (S-learner) + IP − Random targeting,0.0,0.0,0.0,0.0,spend
-dr,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),0.0,0.0,0.0,0.0,spend
-ipw,Uplift (S-learner) + IP − Random targeting,0.0,0.0,0.0,0.0,spend
-ipw,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),0.0,0.0,0.0,0.0,spend
-dr,Uplift (S-learner) + IP − Random targeting,0.20720352019800903,0.06157513347326876,0.37804994039226036,0.1,spend
-dr,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),0.1600041054520932,0.025186798069657786,0.31972891101505624,0.1,spend
-ipw,Uplift (S-learner) + IP − Random targeting,0.2012962613502367,0.06198899851816748,0.367699473237263,0.1,spend
-ipw,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),0.1555934601658857,0.01905230884917248,0.3093068265293654,0.1,spend
-dr,Uplift (S-learner) + IP − Random targeting,0.3234538715871026,0.13071471281146813,0.5500478690260849,0.2,spend
-dr,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),0.22905504209527106,0.03074045327739342,0.44512568871806296,0.2,spend
-ipw,Uplift (S-learner) + IP − Random targeting,0.31244987630812493,0.12447412492320592,0.5464961642763448,0.2,spend
-ipw,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),0.22104427393942316,0.03373940311841406,0.4510520127873474,0.2,spend
-dr,Uplift (S-learner) + IP − Random targeting,0.5008865325367189,0.2678445597566825,0.747386643675435,0.3,spend
-dr,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),0.3592882882989715,0.12540841969497699,0.6114827454520071,0.3,spend
-ipw,Uplift (S-learner) + IP − Random targeting,0.4988198334449342,0.2639539403348901,0.7579834685849712,0.3,spend
-ipw,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),0.3617114298918812,0.1204361315971612,0.6129131054035974,0.3,spend
-dr,Uplift (S-learner) + IP − Random targeting,0.4632524200286521,0.2039122052220128,0.7518447569601922,0.4,spend
-dr,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),0.2744547610449888,0.014792982937596785,0.537370484338516,0.4,spend
-ipw,Uplift (S-learner) + IP − Random targeting,0.45409271478231117,0.1972783118623355,0.7519255222496831,0.4,spend
-ipw,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),0.2712815100449074,0.018787872163565894,0.5364806992346504,0.4,spend
-dr,Uplift (S-learner) + IP − Random targeting,0.4477380889680096,0.16842873677772693,0.7482393360699706,0.5,spend
-dr,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),0.2117410152384307,-0.05285969739306075,0.48743844958928495,0.5,spend
-ipw,Uplift (S-learner) + IP − Random targeting,0.45119141889247794,0.17481256085852206,0.7571901506947308,0.5,spend
-ipw,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),0.2226774129707232,-0.04283057190721032,0.48762750639939245,0.5,spend
-dr,Uplift (S-learner) + IP − Random targeting,0.43895625679762995,0.12338600295279657,0.7382147005895608,0.6,spend
-dr,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),0.15575976832213523,-0.13885153797021332,0.4563950219384846,0.6,spend
-ipw,Uplift (S-learner) + IP − Random targeting,0.443181161475632,0.11860831202341238,0.7402642111278291,0.6,spend
-ipw,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),0.16896435436952628,-0.12380161030484832,0.479294423223961,0.6,spend
-dr,Uplift (S-learner) + IP − Random targeting,0.4278426393193673,0.09300511159641753,0.7323612012817978,0.7,spend
-dr,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),0.09744673609795673,-0.23333606235822796,0.4440768225650297,0.7,spend
-ipw,Uplift (S-learner) + IP − Random targeting,0.4272872978797342,0.10342252305210872,0.7473091478166018,0.7,spend
-ipw,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),0.10736768958927767,-0.22228154914869977,0.46439022249726297,0.7,spend
-dr,Uplift (S-learner) + IP − Random targeting,0.3915029678543813,0.06014306085195798,0.7100430979012649,0.8,spend
-dr,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),0.01390764988705473,-0.35468106962421614,0.39887198929079204,0.8,spend
-ipw,Uplift (S-learner) + IP − Random targeting,0.39008309833685706,0.051231626444317106,0.7179468937244685,0.8,spend
-ipw,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),0.02446068886204955,-0.35782121482767815,0.40843630052750435,0.8,spend
-dr,Uplift (S-learner) + IP − Random targeting,0.31241940288615,-0.030943858091091705,0.6587653987070602,0.9,spend
-dr,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),-0.09738847467184919,-0.5164569906768274,0.3301272381663272,0.9,spend
-ipw,Uplift (S-learner) + IP − Random targeting,0.3117089585691848,-0.026810857586321468,0.6642481026406281,0.9,spend
-ipw,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),-0.08459278425135341,-0.5015329436409542,0.3302248527132327,0.9,spend
-dr,Uplift (S-learner) + IP − Random targeting,0.22473712123488032,-0.13690537475504846,0.5919781544077398,1.0,spend
-dr,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),-0.09738847467184919,-0.5164569906768274,0.3301272381663272,1.0,spend
-ipw,Uplift (S-learner) + IP − Random targeting,0.2222005492059531,-0.1262336402106141,0.5902116504653437,1.0,spend
-ipw,Uplift (S-learner) + IP − Best single arm (Womens E-Mail),-0.08459278425135341,-0.5015329436409542,0.3302248527132327,1.0,spend
-dr,Uplift (DR-learner) + IP − Random targeting,0.0,0.0,0.0,0.0,visit
-dr,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.0,0.0,0.0,0.0,visit
-ipw,Uplift (DR-learner) + IP − Random targeting,0.0,0.0,0.0,0.0,visit
-ipw,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.0,0.0,0.0,0.0,visit
-dr,Uplift (DR-learner) + IP − Random targeting,0.008034694767038789,0.0038307903448120627,0.012264621241107119,0.1,visit
-dr,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.007073466871110851,0.0030587199435374583,0.011224789272502225,0.1,visit
-ipw,Uplift (DR-learner) + IP − Random targeting,0.010281250000000006,0.005549414062500004,0.014610156249999987,0.1,visit
-ipw,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.009240234375000003,0.004428466796875002,0.013544482421875007,0.1,visit
-dr,Uplift (DR-learner) + IP − Random targeting,0.018524091604567,0.013327649406125235,0.02419958127138845,0.2,visit
-dr,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.016601635812711124,0.011987455895482549,0.02180570302246277,0.2,visit
-ipw,Uplift (DR-learner) + IP − Random targeting,0.019781249999999986,0.013966406250000002,0.0257203125,0.2,visit
-ipw,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.017699218749999995,0.012374414062499998,0.023473828125000006,0.2,visit
-dr,Uplift (DR-learner) + IP − Random targeting,0.030849907360855244,0.024773595357256824,0.037434660605807565,0.3,visit
-dr,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.027966223673071416,0.022418944711153754,0.03433841135167947,0.3,visit
-ipw,Uplift (DR-learner) + IP − Random targeting,0.03178124999999998,0.025294921874999998,0.0398712890625,0.3,visit
-ipw,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.028658203124999976,0.02290590820312501,0.03553056640625,0.3,visit
-dr,Uplift (DR-learner) + IP − Random targeting,0.03077139672137312,0.02458765899295208,0.037379061711931755,0.4,visit
-dr,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.026926485137661355,0.021117924362174505,0.03319859119557302,0.4,visit
-ipw,Uplift (DR-learner) + IP − Random targeting,0.030343750000000003,0.023827343750000004,0.03845546874999997,0.4,visit
-ipw,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.02617968750000002,0.0200404296875,0.03358124999999999,0.4,visit
-dr,Uplift (DR-learner) + IP − Random targeting,0.03061228181440806,0.02441275086353398,0.03722353822756568,0.5,visit
-dr,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.02580614233476833,0.019996032599639443,0.03235431924970557,0.5,visit
-ipw,Uplift (DR-learner) + IP − Random targeting,0.03046874999999999,0.024019531249999993,0.03781445312499999,0.5,visit
-ipw,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.025263671875000004,0.018922851562499995,0.032701904296875,0.5,visit
-dr,Uplift (DR-learner) + IP − Random targeting,0.03186318535599367,0.02553020689070571,0.0392269729649396,0.6,visit
-dr,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.02609581798042601,0.018775892424977292,0.033039721133704604,0.6,visit
-ipw,Uplift (DR-learner) + IP − Random targeting,0.031843749999999976,0.024855468750000016,0.03928124999999999,0.6,visit
-ipw,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.02559765624999996,0.01824326171875,0.033592187499999995,0.6,visit
-dr,Uplift (DR-learner) + IP − Random targeting,0.03033086020849693,0.023599013406556478,0.03701874296284907,0.7,visit
-dr,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.023602264937001294,0.015455180121568001,0.031244116501694178,0.7,visit
-ipw,Uplift (DR-learner) + IP − Random targeting,0.029937499999999978,0.022413281249999983,0.037012304687499976,0.7,visit
-ipw,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.02265039062499999,0.014241552734374986,0.030570312499999978,0.7,visit
-dr,Uplift (DR-learner) + IP − Random targeting,0.02964090688046664,0.02296404311771717,0.03612685664890939,0.8,visit
-dr,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.021951083713043107,0.012667135481212038,0.030653399302442805,0.8,visit
-ipw,Uplift (DR-learner) + IP − Random targeting,0.029437499999999978,0.021917968750000006,0.03681406249999998,0.8,visit
-ipw,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.021109375000000014,0.012034765625000016,0.030018750000000014,0.8,visit
-dr,Uplift (DR-learner) + IP − Random targeting,0.025701620623439614,0.018832401079444568,0.03247187746583778,0.9,visit
-dr,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.01762646420973471,0.008324040015390525,0.026300762082309925,0.9,visit
-ipw,Uplift (DR-learner) + IP − Random targeting,0.024249999999999966,0.016999023437499993,0.031961328124999994,0.9,visit
-ipw,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.015468750000000003,0.005453125000000009,0.02501562499999998,0.9,visit
-dr,Uplift (DR-learner) + IP − Random targeting,0.024368913101703416,0.01812605146634564,0.030607740649672262,1.0,visit
-dr,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.02051558063888992,0.011233240362126973,0.029606692878019647,1.0,visit
-ipw,Uplift (DR-learner) + IP − Random targeting,0.024062499999999987,0.017734374999999997,0.031328125,1.0,visit
-ipw,Uplift (DR-learner) + IP − Best single arm (Womens E-Mail),0.01953125,0.009843750000000012,0.02922656249999998,1.0,visit
+dr,Uplift (S-learner) + IP - Random targeting,0.0,0.0,0.0,0.0,spend
+dr,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),0.0,0.0,0.0,0.0,spend
+ipw,Uplift (S-learner) + IP - Random targeting,0.0,0.0,0.0,0.0,spend
+ipw,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),0.0,0.0,0.0,0.0,spend
+dr,Uplift (S-learner) + IP - Random targeting,0.20720352019800903,0.06157513347326876,0.37804994039226036,0.1,spend
+dr,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),0.1600041054520932,0.025186798069657786,0.31972891101505624,0.1,spend
+ipw,Uplift (S-learner) + IP - Random targeting,0.2012962613502367,0.06198899851816748,0.367699473237263,0.1,spend
+ipw,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),0.1555934601658857,0.01905230884917248,0.3093068265293654,0.1,spend
+dr,Uplift (S-learner) + IP - Random targeting,0.3234538715871026,0.13071471281146813,0.5500478690260849,0.2,spend
+dr,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),0.22905504209527106,0.03074045327739342,0.44512568871806296,0.2,spend
+ipw,Uplift (S-learner) + IP - Random targeting,0.31244987630812493,0.12447412492320592,0.5464961642763448,0.2,spend
+ipw,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),0.22104427393942316,0.03373940311841406,0.4510520127873474,0.2,spend
+dr,Uplift (S-learner) + IP - Random targeting,0.5008865325367189,0.2678445597566825,0.747386643675435,0.3,spend
+dr,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),0.3592882882989715,0.12540841969497699,0.6114827454520071,0.3,spend
+ipw,Uplift (S-learner) + IP - Random targeting,0.4988198334449342,0.2639539403348901,0.7579834685849712,0.3,spend
+ipw,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),0.3617114298918812,0.1204361315971612,0.6129131054035974,0.3,spend
+dr,Uplift (S-learner) + IP - Random targeting,0.4632524200286521,0.2039122052220128,0.7518447569601922,0.4,spend
+dr,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),0.2744547610449888,0.014792982937596785,0.537370484338516,0.4,spend
+ipw,Uplift (S-learner) + IP - Random targeting,0.45409271478231117,0.1972783118623355,0.7519255222496831,0.4,spend
+ipw,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),0.2712815100449074,0.018787872163565894,0.5364806992346504,0.4,spend
+dr,Uplift (S-learner) + IP - Random targeting,0.4477380889680096,0.16842873677772693,0.7482393360699706,0.5,spend
+dr,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),0.2117410152384307,-0.05285969739306075,0.48743844958928495,0.5,spend
+ipw,Uplift (S-learner) + IP - Random targeting,0.45119141889247794,0.17481256085852206,0.7571901506947308,0.5,spend
+ipw,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),0.2226774129707232,-0.04283057190721032,0.48762750639939245,0.5,spend
+dr,Uplift (S-learner) + IP - Random targeting,0.43895625679762995,0.12338600295279657,0.7382147005895608,0.6,spend
+dr,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),0.15575976832213523,-0.13885153797021332,0.4563950219384846,0.6,spend
+ipw,Uplift (S-learner) + IP - Random targeting,0.443181161475632,0.11860831202341238,0.7402642111278291,0.6,spend
+ipw,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),0.16896435436952628,-0.12380161030484832,0.479294423223961,0.6,spend
+dr,Uplift (S-learner) + IP - Random targeting,0.4278426393193673,0.09300511159641753,0.7323612012817978,0.7,spend
+dr,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),0.09744673609795673,-0.23333606235822796,0.4440768225650297,0.7,spend
+ipw,Uplift (S-learner) + IP - Random targeting,0.4272872978797342,0.10342252305210872,0.7473091478166018,0.7,spend
+ipw,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),0.10736768958927767,-0.22228154914869977,0.46439022249726297,0.7,spend
+dr,Uplift (S-learner) + IP - Random targeting,0.3915029678543813,0.06014306085195798,0.7100430979012649,0.8,spend
+dr,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),0.01390764988705473,-0.35468106962421614,0.39887198929079204,0.8,spend
+ipw,Uplift (S-learner) + IP - Random targeting,0.39008309833685706,0.051231626444317106,0.7179468937244685,0.8,spend
+ipw,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),0.02446068886204955,-0.35782121482767815,0.40843630052750435,0.8,spend
+dr,Uplift (S-learner) + IP - Random targeting,0.31241940288615,-0.030943858091091705,0.6587653987070602,0.9,spend
+dr,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),-0.09738847467184919,-0.5164569906768274,0.3301272381663272,0.9,spend
+ipw,Uplift (S-learner) + IP - Random targeting,0.3117089585691848,-0.026810857586321468,0.6642481026406281,0.9,spend
+ipw,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),-0.08459278425135341,-0.5015329436409542,0.3302248527132327,0.9,spend
+dr,Uplift (S-learner) + IP - Random targeting,0.22473712123488032,-0.13690537475504846,0.5919781544077398,1.0,spend
+dr,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),-0.09738847467184919,-0.5164569906768274,0.3301272381663272,1.0,spend
+ipw,Uplift (S-learner) + IP - Random targeting,0.2222005492059531,-0.1262336402106141,0.5902116504653437,1.0,spend
+ipw,Uplift (S-learner) + IP - Best single arm (Womens E-Mail),-0.08459278425135341,-0.5015329436409542,0.3302248527132327,1.0,spend
+dr,Uplift (DR-learner) + IP - Random targeting,0.0,0.0,0.0,0.0,visit
+dr,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.0,0.0,0.0,0.0,visit
+ipw,Uplift (DR-learner) + IP - Random targeting,0.0,0.0,0.0,0.0,visit
+ipw,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.0,0.0,0.0,0.0,visit
+dr,Uplift (DR-learner) + IP - Random targeting,0.008034694767038789,0.0038307903448120627,0.012264621241107119,0.1,visit
+dr,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.007073466871110851,0.0030587199435374583,0.011224789272502225,0.1,visit
+ipw,Uplift (DR-learner) + IP - Random targeting,0.010281250000000006,0.005549414062500004,0.014610156249999987,0.1,visit
+ipw,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.009240234375000003,0.004428466796875002,0.013544482421875007,0.1,visit
+dr,Uplift (DR-learner) + IP - Random targeting,0.018524091604567,0.013327649406125235,0.02419958127138845,0.2,visit
+dr,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.016601635812711124,0.011987455895482549,0.02180570302246277,0.2,visit
+ipw,Uplift (DR-learner) + IP - Random targeting,0.019781249999999986,0.013966406250000002,0.0257203125,0.2,visit
+ipw,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.017699218749999995,0.012374414062499998,0.023473828125000006,0.2,visit
+dr,Uplift (DR-learner) + IP - Random targeting,0.030849907360855244,0.024773595357256824,0.037434660605807565,0.3,visit
+dr,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.027966223673071416,0.022418944711153754,0.03433841135167947,0.3,visit
+ipw,Uplift (DR-learner) + IP - Random targeting,0.03178124999999998,0.025294921874999998,0.0398712890625,0.3,visit
+ipw,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.028658203124999976,0.02290590820312501,0.03553056640625,0.3,visit
+dr,Uplift (DR-learner) + IP - Random targeting,0.03077139672137312,0.02458765899295208,0.037379061711931755,0.4,visit
+dr,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.026926485137661355,0.021117924362174505,0.03319859119557302,0.4,visit
+ipw,Uplift (DR-learner) + IP - Random targeting,0.030343750000000003,0.023827343750000004,0.03845546874999997,0.4,visit
+ipw,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.02617968750000002,0.0200404296875,0.03358124999999999,0.4,visit
+dr,Uplift (DR-learner) + IP - Random targeting,0.03061228181440806,0.02441275086353398,0.03722353822756568,0.5,visit
+dr,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.02580614233476833,0.019996032599639443,0.03235431924970557,0.5,visit
+ipw,Uplift (DR-learner) + IP - Random targeting,0.03046874999999999,0.024019531249999993,0.03781445312499999,0.5,visit
+ipw,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.025263671875000004,0.018922851562499995,0.032701904296875,0.5,visit
+dr,Uplift (DR-learner) + IP - Random targeting,0.03186318535599367,0.02553020689070571,0.0392269729649396,0.6,visit
+dr,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.02609581798042601,0.018775892424977292,0.033039721133704604,0.6,visit
+ipw,Uplift (DR-learner) + IP - Random targeting,0.031843749999999976,0.024855468750000016,0.03928124999999999,0.6,visit
+ipw,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.02559765624999996,0.01824326171875,0.033592187499999995,0.6,visit
+dr,Uplift (DR-learner) + IP - Random targeting,0.03033086020849693,0.023599013406556478,0.03701874296284907,0.7,visit
+dr,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.023602264937001294,0.015455180121568001,0.031244116501694178,0.7,visit
+ipw,Uplift (DR-learner) + IP - Random targeting,0.029937499999999978,0.022413281249999983,0.037012304687499976,0.7,visit
+ipw,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.02265039062499999,0.014241552734374986,0.030570312499999978,0.7,visit
+dr,Uplift (DR-learner) + IP - Random targeting,0.02964090688046664,0.02296404311771717,0.03612685664890939,0.8,visit
+dr,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.021951083713043107,0.012667135481212038,0.030653399302442805,0.8,visit
+ipw,Uplift (DR-learner) + IP - Random targeting,0.029437499999999978,0.021917968750000006,0.03681406249999998,0.8,visit
+ipw,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.021109375000000014,0.012034765625000016,0.030018750000000014,0.8,visit
+dr,Uplift (DR-learner) + IP - Random targeting,0.025701620623439614,0.018832401079444568,0.03247187746583778,0.9,visit
+dr,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.01762646420973471,0.008324040015390525,0.026300762082309925,0.9,visit
+ipw,Uplift (DR-learner) + IP - Random targeting,0.024249999999999966,0.016999023437499993,0.031961328124999994,0.9,visit
+ipw,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.015468750000000003,0.005453125000000009,0.02501562499999998,0.9,visit
+dr,Uplift (DR-learner) + IP - Random targeting,0.024368913101703416,0.01812605146634564,0.030607740649672262,1.0,visit
+dr,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.02051558063888992,0.011233240362126973,0.029606692878019647,1.0,visit
+ipw,Uplift (DR-learner) + IP - Random targeting,0.024062499999999987,0.017734374999999997,0.031328125,1.0,visit
+ipw,Uplift (DR-learner) + IP - Best single arm (Womens E-Mail),0.01953125,0.009843750000000012,0.02922656249999998,1.0,visit

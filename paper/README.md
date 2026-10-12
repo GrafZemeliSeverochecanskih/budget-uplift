@@ -7,4 +7,4 @@ Two-column LaTeX write-up of releases v1.0 to v1.5.
 - `references.bib`: bibliography. Page ranges are written `1148{-}1178` so `apacite` prints a plain hyphen.
 - `figures/`: copies of the figures in `results/figures/`.
 
-**Overleaf:** New Project → Upload Project → choose a zip of this folder. The defaults (pdfLaTeX, BibTeX) compile it as is.
+**Overleaf:** New Project -> Upload Project -> choose a zip of this folder. The defaults (pdfLaTeX, BibTeX) compile it as is.

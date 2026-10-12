@@ -188,7 +188,7 @@ def plot(curves: pd.DataFrame, margin: float) -> plt.Figure:
                  x=0.01, ha="left", fontsize=11, fontweight="bold")
     fig.tight_layout(rect=(0, 0.09, 1, 1))
     fig.legend(handles, labels, loc="lower center", ncol=(len(labels) + 1) // 2, bbox_to_anchor=(0.5, -0.02))
-    fig.text(0.01, -0.07, "× = known true profit (positive control). Same folds and customers for every policy.",
+    fig.text(0.01, -0.07, "x = known true profit (positive control). Same folds and customers for every policy.",
              color=TEXT_2, fontsize=8)
     return fig
 

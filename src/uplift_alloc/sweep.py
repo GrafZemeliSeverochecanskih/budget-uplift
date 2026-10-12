@@ -1,4 +1,4 @@
-"""v1.1: when does targeting pay off? Sweep effect heterogeneity × sample size on the semi-synthetic generator.
+"""v1.1: when does targeting pay off? Sweep effect heterogeneity x sample size on the semi-synthetic generator.
 
 Each replication draws n customers (covariates resampled from Hillstrom, arms randomised with
 propensity 1/3), simulates outcomes from the v1.0 positive-control generator with heterogeneity h
@@ -140,12 +140,12 @@ def _diverging_cmap():
 
 
 def plot_heatmap(summary: pd.DataFrame, hillstrom_n: int = 64_000) -> plt.Figure:
-    """Mean true gain per customer over h × n, vs random targeting and vs the best single arm."""
+    """Mean true gain per customer over h x n, vs random targeting and vs the best single arm."""
     apply_style()
     hs = sorted(summary.heterogeneity.unique(), reverse=True)
     ns = sorted(summary.n.unique())
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.4))
-    titles = {"random": "Targeted − random targeting", "best_arm": "Targeted − best single arm"}
+    titles = {"random": "Targeted - random targeting", "best_arm": "Targeted - best single arm"}
     for ax, base in zip(axes, ("random", "best_arm")):
         piv = summary.pivot(index="heterogeneity", columns="n", values=f"true_gain_vs_{base}").loc[hs, ns]
         lim = float(np.nanmax(np.abs(piv.to_numpy()))) or 1.0

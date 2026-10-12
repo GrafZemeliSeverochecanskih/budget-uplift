@@ -100,7 +100,7 @@ def add_paired_differences(table: pd.DataFrame, ours: str, others: list[str], al
         g = g.set_index("policy")
         for other in others:
             diff = g.loc[ours, "_draws"] - g.loc[other, "_draws"]
-            rows.append({"estimator": m, "policy": f"{ours} − {other}",
+            rows.append({"estimator": m, "policy": f"{ours} - {other}",
                          "incremental": g.loc[ours, "value"] - g.loc[other, "value"],
                          "incremental_ci_low": np.quantile(diff, alpha / 2),
                          "incremental_ci_high": np.quantile(diff, 1 - alpha / 2)})
@@ -161,7 +161,7 @@ def evaluate_budgets(train, test, outcome: str, tag: str = "", tau_true: np.ndar
         budget = budget_for(frac, n, cfg)
         policies = {ours: one_hot(ip(tau, budget))}
         if tau_true is not None:
-            policies["Oracle (true τ) + IP"] = one_hot(ip(tau_true, budget))
+            policies["Oracle (true tau) + IP"] = one_hot(ip(tau_true, budget))
         policies.update({"Random targeting": random_policy(n, budget, cost),
                          best: single_arm_policy(n, budget, cost, best_arm), "Send nobody": nobody_policy(n)})
         tab = evaluate_policies(policies, tte, y, mu, reps, seed, alpha)

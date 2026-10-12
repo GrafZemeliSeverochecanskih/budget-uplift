@@ -275,7 +275,7 @@ def plot_runtime(df: pd.DataFrame) -> plt.Figure:
     ax1.set_xscale("log")
     ax1.set_yscale("log")
     ax1.set_xlabel("Customers (n)")
-    ax1.set_ylabel("Seconds (median; band = min–max over budgets > 0)")
+    ax1.set_ylabel("Seconds (median; band = min-max over budgets > 0)")
     ax1.set_title("Solve time", loc="left")
     ax1.legend(loc="lower right")
     lg = df[(df.method == "lagrangian") & (df.budget_fraction > 0)]
@@ -286,7 +286,7 @@ def plot_runtime(df: pd.DataFrame) -> plt.Figure:
     ax2.set_title("Lagrangian optimality gap", loc="left")
     ax2.legend(loc="upper right")
     fig.text(0.01, -0.03, "Objective = predicted incremental spend (train-selected learner). "
-             "Gap = 1 − Lagrangian / IP.", color=TEXT_2, fontsize=8)
+             "Gap = 1 - Lagrangian / IP.", color=TEXT_2, fontsize=8)
     fig.tight_layout()
     return fig
 

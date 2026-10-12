@@ -57,7 +57,7 @@ def fold_policies(tau_hat: np.ndarray, n: int, budget: float, cost: np.ndarray, 
     for m in margins:
         pols[profit_label(m)] = alloc(m * tau_hat - cost[1:])
     if tau_true is not None:
-        pols["Oracle (true τ, profit)"] = alloc(margin_main * tau_true - cost[1:])
+        pols["Oracle (true tau, profit)"] = alloc(margin_main * tau_true - cost[1:])
     return pols
 
 
@@ -151,7 +151,7 @@ def paired_differences(repeats: list[dict], fractions: list[float], margin: floa
         est, se = _per_repeat(diffs)
         for b, frac in enumerate(fractions):
             d = combine_repeats(est[:, b], se[:, b], alpha)
-            rows.append({"dataset": dataset, "comparison": f"{ours} − {other}", "budget_fraction": frac,
+            rows.append({"dataset": dataset, "comparison": f"{ours} - {other}", "budget_fraction": frac,
                          "difference": d[0], "ci_low": d[2], "ci_high": d[3]})
     return pd.DataFrame(rows)
 
@@ -230,7 +230,7 @@ def plot_profit(curves: pd.DataFrame, optima: pd.DataFrame, margin: float) -> pl
     datasets = list(dict.fromkeys(curves.dataset))
     fig, axes = plt.subplots(1, len(datasets), figsize=(6 * len(datasets), 4.3))
     colors = {profit_label(margin): SLOTS[0], "Revenue-targeted (v1.0)": SLOTS[6], "Best single arm": SLOTS[2],
-              "Random targeting": SLOTS[1], "Oracle (true τ, profit)": TEXT}
+              "Random targeting": SLOTS[1], "Oracle (true tau, profit)": TEXT}
     titles = {"hillstrom": "Real Hillstrom outcomes", "positive_control": "Positive control (known effect)"}
     for ax, ds in zip(np.atleast_1d(axes), datasets):
         sub = curves[(curves.dataset == ds) & (curves.margin == margin)]
@@ -261,7 +261,7 @@ def plot_profit(curves: pd.DataFrame, optima: pd.DataFrame, margin: float) -> pl
                  x=0.01, ha="left", fontsize=11, fontweight="bold")
     fig.tight_layout(rect=(0, 0.08, 1, 1))
     fig.legend(handles, labels, loc="lower center", ncol=len(labels), bbox_to_anchor=(0.5, 0.0))
-    fig.text(0.01, -0.04, "× = known true profit (positive control). Profit = margin × DR incremental spend − e-mail "
+    fig.text(0.01, -0.04, "x = known true profit (positive control). Profit = margin x DR incremental spend - e-mail "
              "cost spent. Profit- and revenue-targeted coincide while every top-ranked customer is profitable.",
              color=TEXT_2, fontsize=8)
     return fig

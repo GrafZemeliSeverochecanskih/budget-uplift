@@ -1,4 +1,4 @@
-"""v1.4: sequential allocation — budgeted Thompson-sampling bandit vs one-shot "experiment, then target".
+"""v1.4: sequential allocation - budgeted Thompson-sampling bandit vs one-shot "experiment, then target".
 
 A campaign of N customers arrives in batches; each batch's outcomes are observed before the next
 batch is allocated. One total budget is paced evenly (remaining budget / remaining batches). Outcomes
@@ -28,7 +28,7 @@ def ett_label(k: int) -> str:
     return f"Experiment-then-target (k={k})"
 
 
-BANDIT, ORACLE, RANDOM = "Thompson-sampling bandit", "Oracle (true τ)", "Random targeting"
+BANDIT, ORACLE, RANDOM = "Thompson-sampling bandit", "Oracle (true tau)", "Random targeting"
 
 
 # environment ----------------------------------------------------------------------
@@ -175,7 +175,7 @@ def summarise(batches: pd.DataFrame, customers: int, alpha: float) -> tuple[pd.D
                          "share_of_oracle": share, "share_ci_low": s_lo, "share_ci_high": s_hi})
             if pol != BANDIT:
                 d, d_lo, d_hi = _tci((g[BANDIT] - g[pol]).to_numpy(), alpha)
-                diffs.append({"environment": env, "comparison": f"{BANDIT} − {pol}", "difference": d,
+                diffs.append({"environment": env, "comparison": f"{BANDIT} - {pol}", "difference": d,
                               "ci_low": d_lo, "ci_high": d_hi, "excludes_0": bool(d_lo > 0 or d_hi < 0)})
     return pd.DataFrame(rows), pd.DataFrame(diffs)
 
@@ -208,7 +208,7 @@ def plot(batches: pd.DataFrame, alpha: float) -> plt.Figure:
                  x=0.01, ha="left", fontsize=11, fontweight="bold")
     fig.tight_layout(rect=(0, 0.08, 1, 1))
     fig.legend(handles, labels, loc="lower center", ncol=len(labels), bbox_to_anchor=(0.5, 0.0))
-    fig.text(0.01, -0.03, "Profit = margin × true τ − e-mail cost of each assignment (known from the generator); "
+    fig.text(0.01, -0.03, "Profit = margin x true tau - e-mail cost of each assignment (known from the generator); "
              "every policy sees the same customers and outcome draws.", color=TEXT_2, fontsize=8)
     return fig
 

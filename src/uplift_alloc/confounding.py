@@ -93,8 +93,8 @@ def plot_dag() -> plt.Figure:
     ax.set_axis_off()
     nodes = {
         "H": (0.15, 0.78, "history\n(past-year $)"),
-        "X": (0.15, 0.22, "other covariates\n(recency, channel, …)"),
-        "T": (0.55, 0.78, "e-mail arm T\n(kept treated ∝ history)"),
+        "X": (0.15, 0.22, "other covariates\n(recency, channel, ...)"),
+        "T": (0.55, 0.78, "e-mail arm T\n(kept treated ~ history)"),
         "Y": (0.85, 0.40, "outcome Y\n(visit, spend)"),
     }
     # (start, end) points on the box borders, axes fraction
@@ -107,7 +107,7 @@ def plot_dag() -> plt.Figure:
         ax.text(x, y, label, ha="center", va="center", fontsize=9, color=TEXT, transform=ax.transAxes,
                 bbox=dict(boxstyle="round,pad=0.5", fc=SURFACE, ec=SLOTS[0] if key in "TY" else TEXT_2, lw=1.4))
     ax.set_title("Assumed DAG for the confounded sample", loc="left")
-    fig.text(0.01, 0.0, "Orange: the back-door path T ← history → Y that biases the naive estimate. "
+    fig.text(0.01, 0.0, "Orange: the back-door path T <- history -> Y that biases the naive estimate. "
              "Adjusting for history blocks it.", color=TEXT_2, fontsize=8)
     return fig
 
@@ -127,7 +127,7 @@ def plot_estimates(table: pd.DataFrame) -> plt.Figure:
             ax.plot(r.estimate, yv, "o", color=colors[m], markersize=7, markeredgecolor="white")
         ax.axvline(g.loc["rct_benchmark", "estimate"], color=TEXT_2, lw=0.8, ls="--")
         ax.set_yticks(ys, [labels[m] for m in g.index] if ax is np.atleast_1d(axes)[0] else [])
-        ax.set_title(f"{outcome} · {arm.replace(' E-Mail', '')}", loc="left", fontsize=9)
+        ax.set_title(f"{outcome} - {arm.replace(' E-Mail', '')}", loc="left", fontsize=9)
     fig.suptitle("Confounded sample: naive vs adjusted ATE (95% CI)", x=0.01, ha="left", fontsize=11, fontweight="bold")
     fig.tight_layout()
     return fig

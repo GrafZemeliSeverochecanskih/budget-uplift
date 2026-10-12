@@ -48,7 +48,7 @@ def tiny():
 def test_crossfit_covers_every_customer_and_profit_beats_revenue(tiny):
     cfg, reps = tiny
     name = profit.profit_label(cfg["profit"]["margin"])
-    assert set(reps[0]) >= {name, "Revenue-targeted (v1.0)", "Random targeting", "Oracle (true τ, profit)"}
+    assert set(reps[0]) >= {name, "Revenue-targeted (v1.0)", "Random targeting", "Oracle (true tau, profit)"}
     emailed = {k: (reps[0][k]["cost"][:, 1] > 0).mean() for k in (name, "Revenue-targeted (v1.0)")}
     assert emailed["Revenue-targeted (v1.0)"] > emailed[name] + 0.2  # revenue also e-mails loss-making customers
     curves = profit.profit_curves(reps, cfg["profit"]["budget_fractions"], [cfg["profit"]["margin"]], 0.05, "sim")

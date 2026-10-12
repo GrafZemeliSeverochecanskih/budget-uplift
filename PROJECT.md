@@ -2,8 +2,8 @@
 
 ## Goal
 A public, reproducible research repo showing the full causal decision pipeline:
-analyse a randomised experiment → estimate heterogeneous treatment effects (uplift)
-→ allocate promotions under a budget with constrained optimisation → evaluate the
+analyse a randomised experiment -> estimate heterogeneous treatment effects (uplift)
+-> allocate promotions under a budget with constrained optimisation -> evaluate the
 resulting policy offline. Audience: ML/causal-inference reviewers at a tech company.
 Quality bar: rigorous, honest about negative results, runs end-to-end with one command.
 
@@ -16,7 +16,7 @@ Quality bar: rigorous, honest about negative results, runs end-to-end with one c
   `history` (past-year $ spend), `mens`, `womens` (1/0 bought that category last year),
   `zip_code` (Urban/Suburban/Rural), `newbie` (1/0 new customer), `channel` (Phone/Web/Multichannel).
 - Outcomes: `visit` (1/0), `conversion` (1/0), `spend` ($, very skewed, mostly 0).
-- Treatment column: `segment`. Approximate base rates: visit ≈ 0.15, conversion ≈ 0.009.
+- Treatment column: `segment`. Approximate base rates: visit ~ 0.15, conversion ~ 0.009.
 - Randomisation is uniform, so the true propensity of each arm is 1/3. Use it; do not estimate it
   except in the deliberately confounded extension.
 
@@ -33,10 +33,10 @@ T = bunch.treatment       # Series: 'Mens E-Mail' / 'Womens E-Mail' / 'No E-Mail
 1. Call the loader above (package `scikit-uplift`, imported as `sklift`).
 2. Combine into one DataFrame and save `data/processed/hillstrom.parquet`.
 3. Assert: 64,000 rows; no missing values; exactly the three arm labels, each ~1/3 of rows;
-   `visit`/`conversion` in {0,1}; `spend` ≥ 0; `conversion == 1` implies `visit == 1` (report violations, don't drop).
+   `visit`/`conversion` in {0,1}; `spend` >= 0; `conversion == 1` implies `visit == 1` (report violations, don't drop).
 4. Compute the SHA-256 of the raw CSV and write it with the download date to `data/DATA_VERSION.txt`;
    on later runs, fail loudly if the hash changes.
-5. Encode: arm → {0: No E-Mail, 1: Mens E-Mail, 2: Womens E-Mail}; one-hot `zip_code` and `channel`;
+5. Encode: arm -> {0: No E-Mail, 1: Mens E-Mail, 2: Womens E-Mail}; one-hot `zip_code` and `channel`;
    drop `history_segment` from model features (it is a binned copy of `history`) but keep it for reporting.
 6. Expose `load_hillstrom() -> (X: DataFrame, T: ndarray[int], Y: DataFrame)`.
 
@@ -52,7 +52,7 @@ from sklift.datasets import fetch_criteo
 bunch = fetch_criteo(target_col="all", treatment_col="all", percent10=True, data_home="data/raw")
 ```
 - Full set: ~14M rows, 3.2 GB uncompressed. Start with `percent10=True` (10% sample); go to full only if memory allows.
-- Features `f0`–`f11` (anonymised floats); targets `visit`, `conversion`; treatment `treatment`
+- Features `f0`-`f11` (anonymised floats); targets `visit`, `conversion`; treatment `treatment`
   (randomised, ~85% treated) and `exposure` (actually shown the ad, NOT randomised).
 - Use `treatment` as the treatment and propensity 0.85. Never use `exposure` as a treatment
   without a non-compliance/IV argument; mention it as a limitation.

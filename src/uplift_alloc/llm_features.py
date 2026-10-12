@@ -4,7 +4,7 @@ The sentence is a deterministic rendering of the same tabular covariates, so the
 only help if the language model's geometry encodes useful interactions/non-linearities; it adds
 no new information. That makes this a test of representation, not of data.
 
-PCA is fit on train rows only. LightGBM parameters are those tuned without embeddings (§2).
+PCA is fit on train rows only. LightGBM parameters are those tuned without embeddings (Sec. 2).
 """
 from __future__ import annotations
 

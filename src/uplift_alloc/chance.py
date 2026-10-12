@@ -145,7 +145,7 @@ def crossfit_repeat(d: dict[str, Any], learner: str, cfg: dict, repeat: int) -> 
             mean_assign = allocate_rowcost(S, C, budget)
             chance_assign, eff = chance_allocate(S, C, V, budget, eps)
             for name, assign, share in (("Mean budget", mean_assign, 1.0),
-                                        (f"Chance-constrained (ε={eps:g})", chance_assign, eff / budget)):
+                                        (f"Chance-constrained (eps={eps:g})", chance_assign, eff / budget)):
                 rows.append({"repeat": repeat, "fold": f, "policy": name, "budget_per_customer": b_pc,
                              "effective_budget_share": share, **campaign_row(assign, C, V, budget, ctx)})
     return rows
@@ -194,7 +194,7 @@ def campaign_row(assign: np.ndarray, C: np.ndarray, V: np.ndarray, budget: float
 
 
 def summarise(rows: pd.DataFrame, alpha: float) -> pd.DataFrame:
-    """Mean over campaigns (repeat × fold) with t-intervals."""
+    """Mean over campaigns (repeat x fold) with t-intervals."""
     metrics = [c for c in ("est_profit", "true_profit", "plugin_violation", "true_violation",
                            "true_expected_cost_share", "effective_budget_share", "n_targeted", "p_hat_selected",
                            "p_true_selected", "p_hat_all", "p_true_all") if c in rows]
@@ -225,7 +225,7 @@ def plot(summary: pd.DataFrame, epsilon: float) -> plt.Figure:
         ax2.errorbar(x, g.true_profit, yerr=[g.true_profit - g.true_profit_ci_low, g.true_profit_ci_high - g.true_profit],
                      fmt="o-", color=colors[name], capsize=3, markersize=5, label=name)
     ax1.axhline(epsilon, color=TEXT_2, linestyle="--", linewidth=1)
-    ax1.annotate(f"target ε = {epsilon:g}", (pc.budget_per_customer.min(), epsilon), xytext=(0, 4),
+    ax1.annotate(f"target eps = {epsilon:g}", (pc.budget_per_customer.min(), epsilon), xytext=(0, 4),
                  textcoords="offset points", fontsize=8, color=TEXT_2)
     ax1.set_ylim(0, 1)
     ax1.set_ylabel("P(campaign cost > budget), true uptake")

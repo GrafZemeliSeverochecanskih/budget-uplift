@@ -45,15 +45,15 @@ def mean_budget_label() -> str:
 
 
 def plugin_label(eps: float) -> str:
-    return f"Chance-constrained (ε={eps:g})"
+    return f"Chance-constrained (eps={eps:g})"
 
 
 def recal_label(eps: float) -> str:
-    return f"Chance, recalibrated uptake (ε={eps:g})"
+    return f"Chance, recalibrated uptake (eps={eps:g})"
 
 
 def upper_label(eps: float) -> str:
-    return f"Chance, bootstrap-upper uptake (ε={eps:g})"
+    return f"Chance, bootstrap-upper uptake (eps={eps:g})"
 
 
 def score_cost_var(tau_hat: np.ndarray, p: np.ndarray, cost: np.ndarray, voucher: float,
@@ -170,7 +170,7 @@ def plot(summary: pd.DataFrame, epsilon: float) -> plt.Figure:
         ax2.errorbar(x, g.true_profit, yerr=[g.true_profit - g.true_profit_ci_low, g.true_profit_ci_high - g.true_profit],
                      fmt="o-", color=colors[name], capsize=3, markersize=5, label=name)
     ax1.axhline(epsilon, color=TEXT_2, linestyle="--", linewidth=1)
-    ax1.annotate(f"target ε = {epsilon:g}", (pc.budget_per_customer.min(), epsilon), xytext=(0, 4),
+    ax1.annotate(f"target eps = {epsilon:g}", (pc.budget_per_customer.min(), epsilon), xytext=(0, 4),
                  textcoords="offset points", fontsize=8, color=TEXT_2)
     ax1.set_ylim(0, 1)
     ax1.set_ylabel("P(campaign cost > budget), true uptake")
