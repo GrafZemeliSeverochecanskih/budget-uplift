@@ -35,7 +35,7 @@ of different cost. Can heterogeneous treatment effects estimated from a randomis
 
 So the spend null result is a property of the data, not a blind spot of the method. The optimisation
 layer works on both: a Lagrangian heuristic stays within 0.34% of the exact integer program and is
-~200× faster at 64k customers.
+~170× faster at 64k customers.
 
 Pipeline: RCT analysis → CATE/uplift models → allocation under a budget (integer program and
 Lagrangian) → off-policy evaluation (IPW and doubly robust). Extensions: semi-synthetic positive
@@ -129,8 +129,8 @@ The learners selected on train (and used downstream) are X for spend and S for v
 
 **Allocation solvers** (`allocation_comparison.csv`, `runtime.png`). SCIP proves optimality on all 33
 (n, budget) instances. The Lagrangian solution is always feasible, with a gap to the IP of at most
-0.34% (n = 1k), 0.17% (10k) and 0.11% (64k). Median solve time at 64k: SCIP 45.6 s vs Lagrangian
-0.23 s. These objectives are *predicted* uplift, so they compare solvers, not policies.
+0.34% (n = 1k), 0.17% (10k) and 0.11% (64k). Median solve time at 64k: SCIP 49.3 s vs Lagrangian
+0.29 s (single-run wall-clock times on an AMD Ryzen 7 7435HS, 8 cores, 16 GB RAM; they vary between runs). These objectives are *predicted* uplift, so they compare solvers, not policies.
 
 ### Positive control in detail
 
@@ -584,4 +584,4 @@ DATA_CARD.md  DECISIONS.md  ROADMAP.md  TODO.md  PROJECT.md
 > data has no targetable spend signal (model-targeted −$0.04/customer vs random, 95% CI −0.30 to
 > 0.22), while a semi-synthetic positive control on the same covariates is recovered (τ̂–τ correlation
 > up to 0.83; +$0.50 [0.27, 0.75] vs random at 30% budget). A Lagrangian heuristic matched the exact
-> IP to within 0.34% at ~200× the speed.
+> IP to within 0.34% at ~170× the speed.

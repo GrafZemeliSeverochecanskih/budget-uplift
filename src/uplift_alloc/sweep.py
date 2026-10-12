@@ -168,7 +168,7 @@ def plot_heatmap(summary: pd.DataFrame, hillstrom_n: int = 64_000) -> plt.Figure
         ax.grid(False)
         for spine in ax.spines.values():
             spine.set_visible(False)
-    fig.suptitle("v1.1: true gain from model-based targeting ($ of spend per customer, budget 30%)",
+    fig.suptitle("True gain from model-based targeting ($ of spend per customer, budget 30%)",
                  x=0.01, ha="left", fontsize=11, fontweight="bold")
     fig.text(0.01, -0.04, "Cell value: mean over replications of the known true gain. Bold + outlined: 95% interval "
              "across replications excludes 0.\n'detected': share of single experiments whose doubly robust 95% CI "

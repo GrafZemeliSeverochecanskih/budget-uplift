@@ -180,7 +180,7 @@ def plot(summary: pd.DataFrame, epsilon: float) -> plt.Figure:
     for ax in (ax1, ax2):
         ax.set_xlabel("Budget ($ per customer in the campaign)")
     handles, labels = ax1.get_legend_handles_labels()
-    fig.suptitle("v1.5: selection-aware chance constraints under random voucher uptake (positive control)",
+    fig.suptitle("Selection-aware chance constraints under random voucher uptake (positive control)",
                  x=0.01, ha="left", fontsize=11, fontweight="bold")
     fig.tight_layout(rect=(0, 0.1, 1, 1))
     fig.legend(handles, labels, loc="lower center", ncol=2, bbox_to_anchor=(0.5, 0.0))

@@ -235,7 +235,7 @@ def plot(summary: pd.DataFrame, epsilon: float) -> plt.Figure:
     for ax in (ax1, ax2):
         ax.set_xlabel("Budget ($ per customer in the campaign)")
     ax1.legend(loc="center right")
-    fig.suptitle("v1.3: chance-constrained vs mean budget under random voucher uptake (positive control)",
+    fig.suptitle("Chance-constrained vs mean budget under random voucher uptake (positive control)",
                  x=0.01, ha="left", fontsize=11, fontweight="bold")
     fig.text(0.01, -0.03, "Each point: mean over 15 cross-fitted campaigns of ~12,800 customers, 95% t-interval. "
              "Violation evaluated with the TRUE purchase probabilities.", color=TEXT_2, fontsize=8)

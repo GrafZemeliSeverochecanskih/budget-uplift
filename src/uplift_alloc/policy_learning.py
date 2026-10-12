@@ -184,7 +184,7 @@ def plot(curves: pd.DataFrame, margin: float) -> plt.Figure:
             if lab not in labels:
                 handles.append(h)
                 labels.append(lab)
-    fig.suptitle("v1.3: direct policy learning vs estimate-then-optimise (cross-fitted, 95% CI)",
+    fig.suptitle("Direct policy learning vs estimate-then-optimise (cross-fitted, 95% CI)",
                  x=0.01, ha="left", fontsize=11, fontweight="bold")
     fig.tight_layout(rect=(0, 0.09, 1, 1))
     fig.legend(handles, labels, loc="lower center", ncol=(len(labels) + 1) // 2, bbox_to_anchor=(0.5, -0.02))

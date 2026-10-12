@@ -204,7 +204,7 @@ def plot(batches: pd.DataFrame, alpha: float) -> plt.Figure:
         ax.set_ylabel("Cumulative true profit per campaign customer ($)")
         ax.set_title(titles.get(env, env), loc="left")
     handles, labels = np.atleast_1d(axes)[0].get_legend_handles_labels()
-    fig.suptitle("v1.4: budgeted bandit vs experiment-then-target (same budget, paced evenly; 95% CI over replications)",
+    fig.suptitle("Budgeted bandit vs experiment-then-target (same budget, paced evenly; 95% CI over replications)",
                  x=0.01, ha="left", fontsize=11, fontweight="bold")
     fig.tight_layout(rect=(0, 0.08, 1, 1))
     fig.legend(handles, labels, loc="lower center", ncol=len(labels), bbox_to_anchor=(0.5, 0.0))

@@ -240,7 +240,8 @@ def plot_profit(curves: pd.DataFrame, optima: pd.DataFrame, margin: float) -> pl
                 continue
             oracle = name.startswith("Oracle")
             ax.fill_between(g.budget_fraction, g.profit_ci_low, g.profit_ci_high, color=color, alpha=0.10, linewidth=0)
-            ax.plot(g.budget_fraction, g.profit, color=color, marker="o", markersize=3.5, label=name,
+            ax.plot(g.budget_fraction, g.profit, color=color, marker="o", markersize=3.5,
+                    label=name.replace(" (v1.0)", ""),  # keep the release tag out of the figure; tables keep it
                     linestyle=":" if oracle else "-")
             if ds != "hillstrom":
                 ax.plot(g.budget_fraction, g.true_profit, color=color, marker="x", markersize=5, linestyle="none")
@@ -256,7 +257,7 @@ def plot_profit(curves: pd.DataFrame, optima: pd.DataFrame, margin: float) -> pl
         ax.set_xlabel("Budget (fraction of customers at mean e-mail cost; 1.2 = unconstrained)")
         ax.set_ylabel(f"Incremental profit per customer ($, margin {margin:.0%})")
     handles, labels = np.atleast_1d(axes)[-1].get_legend_handles_labels()
-    fig.suptitle("v1.2: profit vs budget, cross-fitted on all 64,000 customers (95% CI incl. refit variance)",
+    fig.suptitle("Profit vs budget, cross-fitted on all 64,000 customers (95% CI incl. refit variance)",
                  x=0.01, ha="left", fontsize=11, fontweight="bold")
     fig.tight_layout(rect=(0, 0.08, 1, 1))
     fig.legend(handles, labels, loc="lower center", ncol=len(labels), bbox_to_anchor=(0.5, 0.0))
