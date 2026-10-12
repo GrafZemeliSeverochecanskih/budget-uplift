@@ -1,4 +1,8 @@
-# Budget-constrained promotion targeting from an RCT
+# When Does Uplift Targeting Pay Off?
+
+**Paper:** [paper/main.pdf](paper/main.pdf)
+
+[![tests](https://github.com/GrafZemeliSeverochecanskih/budget-uplift/actions/workflows/tests.yml/badge.svg)](https://github.com/GrafZemeliSeverochecanskih/budget-uplift/actions/workflows/tests.yml)
 
 **v1.0: a pre-registered pipeline, extended in later releases.** Each release freezes its config in
 a commit before anything runs on it; the plan is in [ROADMAP.md](ROADMAP.md) and every later change
@@ -9,8 +13,8 @@ is logged with a reason in [DECISIONS.md](DECISIONS.md).
 | v1.0 | Does uplift targeting beat simple rules on Hillstrom? | No for spend; a small signal for visit that does not beat "Mens e-mail for everyone". A positive control is recovered. |
 | [v1.1](#v11---when-does-targeting-pay-off) | When does targeting pay off? | Gains appear from modest heterogeneity, but at Hillstrom's size one experiment rarely detects them. The null is weak evidence. |
 | [v1.2](#v12---profit-objective) | What if we maximise profit and pick the budget? | The profit objective finds its own budget (known optimum recovered); real data: e-mailing pays, targeting does not. Cross-fitting narrows intervals by 37-58%. |
-| [v1.3](#v13---direct-policy-learning-and-a-chance-constrained-budget) | Policy learning? Random uptake? | Policy trees never beat estimate-then-optimise. Chance constraints cut overruns but miss their target because of the winner's curse. |
-| [v1.4](#v14---sequential-allocation-bandit-vs-experiment-then-target) | Learn while spending? | A Thompson-sampling bandit beats or ties every experiment-then-target design, and costs nothing when there is nothing to learn. |
+| [v1.3](#v13---direct-policy-learning-and-a-chance-constrained-budget) | Policy learning? Random uptake? | Policy trees never beat estimate-then-optimise. Chance constraints cut overruns but miss their target because of the optimiser's curse. |
+| [v1.4](#v14---sequential-allocation-bandit-vs-experiment-then-target) | Learn while spending? | A Thompson-sampling bandit beats experiment-then-target with k = 1 and k = 4 and is not significantly different from k = 2, and costs nothing when there is nothing to learn. |
 | [v1.5](#v15---selection-aware-chance-constraint) | Can the chance constraint be repaired? | Recalibrating uptake on held-out selected customers barely helps; a bootstrap-upper uptake bound meets the 5% target with room to spare, at 16-19% of profit. |
 
 **Question.** A retailer can afford to e-mail only some customers, and has two e-mails (Mens, Womens)
@@ -387,7 +391,7 @@ probabilities, which only the positive control knows: 2,000 Monte Carlo draws pe
 - **The chance constraint helps a lot but does not deliver its promise.** It cuts overruns from
   63-85% to 14-32%, giving up 8-18% of profit. Yet it misses the 5% target, which it *believes* it
   meets: its plug-in overrun probability is exactly 0.05.
-- **The cause is the winner's curse, not the normal approximation.** Estimated uptake is
+- **The cause is the optimiser's curse, not the normal approximation.** Estimated uptake is
   calibrated overall (0.012 vs 0.012 true) but underestimated by about 10% among the customers the
   allocator picks (0.026 vs 0.028-0.029). Cheap-looking customers are partly cheap by estimation
   error. As a result even the mean-budget policy's *expected* cost is 5-7% over budget, so it
@@ -467,7 +471,7 @@ Limitations specific to v1.4:
 
 **Question.** v1.3 found that the plug-in chance constraint believes its overrun probability is 5%
 while the true value is 14-32%: estimated uptake is too low among exactly the customers the
-allocator selects (winner's curse). Can that be corrected using the training data only?
+allocator selects (optimiser's curse). Can that be corrected using the training data only?
 
 **Design** (frozen in config before any v1.5 code ran; DECISIONS K1-K4). Same scenario, budgets,
 eps = 0.05, folds and campaigns as v1.3b; only the uptake estimate p-hat used by the constraint changes.

@@ -1,4 +1,4 @@
-"""v1.5: selection-aware chance constraint (fixing the winner's curse found in v1.3b).
+"""v1.5: selection-aware chance constraint (fixing the optimiser's curse found in v1.3b).
 
 v1.3b showed that estimated uptake p-hat is calibrated over all customers but too low among the
 customers the allocator selects: the voucher cost enters the score as v * p-hat, so customers whose

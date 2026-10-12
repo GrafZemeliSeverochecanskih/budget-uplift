@@ -55,7 +55,7 @@ Goal: compare a budgeted contextual bandit with one-shot "experiment, then targe
 ## v1.5 - selection-aware chance constraint (done)
 
 Goal: make the v1.3 chance constraint deliver its promised overrun probability by correcting the
-winner's curse in estimated uptake among the customers the allocator selects.
+optimiser's curse in estimated uptake among the customers the allocator selects.
 
 - [x] Recalibration design frozen in config before running
 - [x] Selection-aware recalibration of uptake (bias factor estimated on held-out selected customers)
